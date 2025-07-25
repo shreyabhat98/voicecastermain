@@ -2,6 +2,7 @@ import { sdk } from "@farcaster/frame-sdk";
 import { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Play, Pause, Send, Trash2, Volume2, RotateCcw } from 'lucide-react';
 import { uploadAudioFile } from './utils/supabase';
+import { generateVideoFromAudio } from './utils/videoGenerator';
 
 // Bouncing Mic SVG Component
 const BouncingMic = () => {
@@ -60,6 +61,8 @@ function App() {
       setIsLoading(false);
     }, 2000);
   }, []);
+
+  
 
   // Start recording
   const startRecording = async () => {
@@ -173,7 +176,37 @@ function App() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Post to Farcaster (combines upload + cast)
+  // Function to open Farcaster app with the video
+  const openFarcasterWithVideo = (videoUrl: string) => {
+    // Method 1: Use Farcaster's intent URL (if available)
+    const farcasterIntentUrl = `https://warpcast.com/~/compose?embeds[]=${encodeURIComponent(videoUrl)}`;
+    
+    // Method 2: Use Farcaster SDK's share action (for mini apps)
+    if (typeof window !== 'undefined' && (window as any).parent !== window) {
+      // We're in a mini app, use Farcaster SDK
+      try {
+        sdk.actions.openUrl(farcasterIntentUrl);
+        return;
+      } catch (error) {
+        console.log('SDK method failed, trying direct URL');
+      }
+    }
+    
+    // Method 3: Direct URL opening
+    try {
+      // Try to open Farcaster app directly
+      window.open(farcasterIntentUrl, '_blank');
+    } catch (error) {
+      // Fallback: copy URL to clipboard
+      navigator.clipboard.writeText(videoUrl).then(() => {
+        alert(`Video uploaded successfully!\n\nVideo URL copied to clipboard: ${videoUrl}\n\nPaste this in Farcaster to share your voice note!`);
+      }).catch(() => {
+        alert(`Video uploaded successfully!\n\nVideo URL: ${videoUrl}\n\nCopy this URL and paste it in Farcaster to share your voice note!`);
+      });
+    }
+  };
+
+  // Post to Farcaster (generates video and opens Farcaster app)
   const postToFarcaster = async () => {
     if (!audioBlob) return;
     
@@ -186,23 +219,40 @@ function App() {
         setIsProcessing(false);
       }, 2000);
       
-      // Generate unique filename
+      console.log('🎬 Generating video...');
+      
+      // Generate video from audio
+      const videoBlob = await generateVideoFromAudio({
+        audioBlob,
+        duration: duration > 0 ? duration : recordedDuration,
+        userProfile: {
+          username: 'user',
+          avatar: undefined
+        },
+        message: "Check out my voice note!"
+      });
+      
+      console.log('✅ Video generated!');
+      console.log('📤 Uploading to Supabase...');
+      
+      // Upload video to Supabase
       const timestamp = Date.now();
-      const fileName = `voice-${timestamp}.wav`;
+      const videoFileName = `voice-video-${timestamp}.webm`;
+      const videoUrl = await uploadAudioFile(videoBlob, videoFileName);
       
-      // Upload to Supabase
-      const publicUrl = await uploadAudioFile(audioBlob, fileName);
-      setUploadedUrl(publicUrl);
+      setUploadedUrl(videoUrl);
       
-      console.log('Audio uploaded to Supabase:', publicUrl);
+      console.log('🎉 Upload complete!');
+      console.log('🔗 Video URL:', videoUrl);
       
-      // Here you would generate video and post to Farcaster
-      alert(`Audio uploaded successfully! URL: ${publicUrl}`);
+      // Open Farcaster with the video
+      console.log('🚀 Opening Farcaster...');
+      openFarcasterWithVideo(videoUrl);
       
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('❌ Process failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Upload failed: ${errorMessage}`);
+      alert(`Failed: ${errorMessage}\n\nCheck the browser console for details.`);
     } finally {
       setIsUploading(false);
     }
@@ -234,7 +284,7 @@ function App() {
       <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white drop-shadow-lg mb-2">Voice Cast</h1>
+          <h1 className="text-3xl font-bold text-white drop-shadow-lg mb-2">Voice Caster</h1>
           <p className="text-white/90 text-sm font-medium drop-shadow">Record and share on Farcaster</p>
         </div>
 
@@ -242,27 +292,34 @@ function App() {
         <div className="mb-8">
           {!audioBlob ? (
             <div className="text-center">
+              {/* Debug button - remove after testing */}
+              {!isRecording && (
+                <button >
+          
+                </button>
+              )}
+
               <div className="relative mb-6">
-  {/* Main mic circle - no white ring */}
-  <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center transition-all duration-300 ${
-    isRecording 
-      ? 'bg-red-500/20 border-4 border-red-400 animate-pulse' 
-      : 'bg-white/10 border-4 border-white/30 hover:border-white/50'
-  }`}>
-    <Mic className={`w-12 h-12 ${isRecording ? 'text-red-400' : 'text-white'}`} />
-  </div>
-  
-  {isRecording && (
-    <div className="absolute inset-0 w-32 h-32 mx-auto rounded-full border-4 border-red-400/30 animate-ping"></div>
-  )}
-</div>
+                {/* Main mic circle */}
+                <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center transition-all duration-300 ${
+                  isRecording 
+                    ? 'bg-red-500/20 border-4 border-red-400 animate-pulse' 
+                    : 'bg-white/10 border-4 border-white/30 hover:border-white/50'
+                }`}>
+                  <Mic className={`w-12 h-12 ${isRecording ? 'text-red-400' : 'text-white'}`} />
+                </div>
+                
+                {isRecording && (
+                  <div className="absolute inset-0 w-32 h-32 mx-auto rounded-full border-4 border-red-400/30 animate-ping"></div>
+                )}
+              </div>
 
               {isRecording && (
                 <div className="mb-4">
                   <div className="text-white text-lg font-mono">
                     {formatTime(recordingTime)}
                   </div>
-                  <div className="text-white/70 text-sm">Recording...</div>
+                  <div className="text-white/70 text-sm"></div>
                 </div>
               )}
 
@@ -342,7 +399,10 @@ function App() {
                   className="action-button disabled:opacity-50 text-white w-full"
                 >
                   {isProcessing ? (
-                    <BouncingMic />
+                    <>
+                      <BouncingMic />
+                      <span className="ml-2">Generating video...</span>
+                    </>
                   ) : isUploading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
@@ -351,7 +411,7 @@ function App() {
                   ) : (
                     <>
                       <Send className="w-5 h-5 mr-2" />
-                      Cast
+                      Cast to Farcaster
                     </>
                   )}
                 </button>
@@ -368,8 +428,8 @@ function App() {
 
               {uploadedUrl && (
                 <div className="mt-4 p-3 bg-green-500/10 border border-green-400/20 rounded-xl">
-                  <div className="text-green-400 text-sm font-semibold mb-1">✓ Cast successful!</div>
-                  <div className="text-green-300 text-xs truncate">Your voice note is now on Farcaster</div>
+                  <div className="text-green-400 text-sm font-semibold mb-1">✓ Opening Farcaster...</div>
+                  <div className="text-green-300 text-xs truncate">Your video is ready to cast!</div>
                 </div>
               )}
             </div>
@@ -379,7 +439,7 @@ function App() {
         {/* Footer */}
         <div className="text-center">
           <p className="text-white/70 text-xs">
-            Audio will be converted to video format for Farcaster
+            Yap away!
           </p>
         </div>
       </div>
