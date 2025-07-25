@@ -229,7 +229,7 @@ function App() {
           username: 'user',
           avatar: undefined
         },
-        message: "Check out my voice note!"
+       // message: "Check out my voice note!"
       });
       
       console.log('✅ Video generated!');

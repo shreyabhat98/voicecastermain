@@ -11,7 +11,7 @@ export interface VideoGenerationOptions {
 export const generateVideoFromAudio = async (options: VideoGenerationOptions): Promise<Blob> => {
   console.log('🎬 Video generation started with options:', options);
   
-  const { audioBlob, duration, userProfile, message = "Check out my voice note!" } = options;
+  const { audioBlob, duration, message = "" } = options;
   
   try {
     // Create canvas for video frames
