@@ -62,29 +62,133 @@ function App() {
     }, 2000);
   }, []);
 
-  
+  // Debug function to test browser support
+  const testBrowserSupport = () => {
+    console.log('🔍 Testing browser support...');
+    
+    // Check MediaRecorder support
+    console.log('MediaRecorder supported:', !!window.MediaRecorder);
+    
+    // Check Canvas support
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    console.log('Canvas 2D supported:', !!ctx);
+    
+    // Check captureStream support
+    console.log('Canvas captureStream supported:', !!(canvas as any).captureStream);
+    
+    // Check AudioContext support
+    console.log('AudioContext supported:', !!(window.AudioContext || (window as any).webkitAudioContext));
+    
+    // Check supported MIME types
+    const mimeTypes = [
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm',
+      'video/mp4'
+    ];
+    
+    mimeTypes.forEach(type => {
+      console.log(`${type} supported:`, MediaRecorder.isTypeSupported(type));
+    });
+  };
 
-  // Start recording
+  // Add this function to test mobile capabilities
+  const testMobileCapabilities = () => {
+    console.log('📱 Testing mobile capabilities...');
+    console.log('User agent:', navigator.userAgent);
+    console.log('Is mobile:', /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    console.log('getUserMedia supported:', !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
+    console.log('MediaRecorder supported:', !!window.MediaRecorder);
+    
+    // Test supported audio formats on mobile
+    const audioFormats = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/wav',
+      'audio/ogg'
+    ];
+    
+    audioFormats.forEach(format => {
+      console.log(`${format} supported:`, MediaRecorder.isTypeSupported(format));
+    });
+  };
+
+  // Start recording - mobile-friendly version
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      console.log('🎤 Starting recording...');
+      
+      // Mobile-friendly audio constraints
+      const constraints = {
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          // Remove any advanced constraints that might fail on mobile
+          sampleRate: undefined,
+          channelCount: undefined,
+          sampleSize: undefined
+        }
+      };
+      
+      console.log('📱 Requesting microphone access...');
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('✅ Microphone access granted');
+      
+      // Check if MediaRecorder supports the audio stream
+      if (!MediaRecorder.isTypeSupported('audio/webm')) {
+        console.log('audio/webm not supported, trying audio/mp4');
+        if (!MediaRecorder.isTypeSupported('audio/mp4')) {
+          console.log('audio/mp4 not supported, using default');
+        }
+      }
+      
+      // Use supported audio format
+      const options: MediaRecorderOptions = {};
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        options.mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+        options.mimeType = 'audio/webm';
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        options.mimeType = 'audio/mp4';
+      }
+      
+      console.log('🎵 Using MIME type:', options.mimeType || 'default');
+      
+      mediaRecorderRef.current = new MediaRecorder(stream, options);
       chunksRef.current = [];
       
       mediaRecorderRef.current.ondataavailable = (event) => {
+        console.log('📦 Audio chunk received, size:', event.data.size);
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
 
       mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/wav' });
+        console.log('🛑 Recording stopped, chunks:', chunksRef.current.length);
+        const mimeType = options.mimeType || 'audio/webm';
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        console.log('📊 Final audio blob size:', blob.size);
+        
+        if (blob.size === 0) {
+          alert('⚠️ Recording failed - no audio data captured. Please check microphone permissions and try again.');
+          return;
+        }
+        
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
         stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorderRef.current.start();
+      mediaRecorderRef.current.onerror = (event) => {
+        console.error('❌ MediaRecorder error:', event);
+        alert('Recording failed. Please try again.');
+      };
+
+      mediaRecorderRef.current.start(100); // Capture every 100ms for better mobile compatibility
       setIsRecording(true);
       setRecordingTime(0);
       
@@ -93,9 +197,25 @@ function App() {
         setRecordingTime(prev => prev + 1);
       }, 1000);
       
+      console.log('🔴 Recording started successfully');
+      
     } catch (error) {
-      console.error('Error accessing microphone:', error);
-      alert('Error accessing microphone. Please check permissions.');
+      console.error('❌ Error accessing microphone:', error);
+      
+      // More specific error messages
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          alert('🚫 Microphone access denied. Please allow microphone permissions and try again.');
+        } else if (error.name === 'NotFoundError') {
+          alert('🎤 No microphone found. Please connect a microphone and try again.');
+        } else if (error.name === 'NotSupportedError') {
+          alert('📱 Audio recording not supported on this device/browser.');
+        } else {
+          alert(`❌ Recording error: ${error.message}`);
+        }
+      } else {
+        alert('❌ Unknown recording error. Please try again.');
+      }
     }
   };
 
@@ -176,33 +296,91 @@ function App() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Function to open Farcaster app with the video
+  // Function to open Farcaster app with the video - Mini App compatible
   const openFarcasterWithVideo = (videoUrl: string) => {
-    // Method 1: Use Farcaster's intent URL (if available)
-    const farcasterIntentUrl = `https://warpcast.com/~/compose?embeds[]=${encodeURIComponent(videoUrl)}`;
+    console.log('🚀 Opening Farcaster with video:', videoUrl);
+    console.log('📱 User agent:', navigator.userAgent);
+    console.log('🔍 Parent window:', window.parent !== window ? 'Mini App' : 'Standalone');
     
-    // Method 2: Use Farcaster SDK's share action (for mini apps)
-    if (typeof window !== 'undefined' && (window as any).parent !== window) {
-      // We're in a mini app, use Farcaster SDK
+    // Check if we're running inside Farcaster Mini App
+    const isInMiniApp = window.parent !== window || 
+                       navigator.userAgent.includes('Farcaster') ||
+                       window.location.href.includes('farcaster.xyz');
+    
+    console.log('🔍 Is in Mini App:', isInMiniApp);
+    
+    if (isInMiniApp) {
+      // We're in a Farcaster Mini App - use SDK methods
       try {
-        sdk.actions.openUrl(farcasterIntentUrl);
-        return;
+        console.log('📱 Using Farcaster Mini App SDK...');
+        
+        // Method 1: Try to close mini app and open composer
+        const castText = `🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`;
+        
+        // Try different SDK approaches
+        if (sdk.actions.close) {
+          console.log('🔄 Closing mini app...');
+          sdk.actions.close();
+          
+          // Try to open compose after closing
+          setTimeout(() => {
+            const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}`;
+            window.open(composeUrl, '_parent');
+          }, 500);
+        } else if (sdk.actions.openUrl) {
+          console.log('🔗 Opening URL via SDK...');
+          const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}`;
+          sdk.actions.openUrl(composeUrl);
+        } else {
+          // Fallback: try to navigate parent window
+          console.log('🔄 Fallback: navigating parent...');
+          const castText = `🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`;
+          const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}`;
+          window.parent.location.href = composeUrl;
+        }
+        
+        // Show success message
+        setTimeout(() => {
+          alert(`🎉 Video ready to cast!\n\nVideo URL: ${videoUrl}\n\nThe Farcaster composer should open with your video ready to share!`);
+        }, 1000);
+        
       } catch (error) {
-        console.log('SDK method failed, trying direct URL');
+        console.error('❌ Mini App SDK failed:', error);
+        
+        // Fallback for mini app
+        navigator.clipboard.writeText(videoUrl).then(() => {
+          alert(`🎉 Video uploaded!\n\nVideo URL copied to clipboard: ${videoUrl}\n\n1. Close this mini app\n2. Start a new cast\n3. Paste the video URL\n4. Add your caption and cast!`);
+        }).catch(() => {
+          alert(`🎉 Video uploaded!\n\nVideo URL: ${videoUrl}\n\n1. Copy this URL\n2. Close this mini app\n3. Start a new cast\n4. Paste the URL and add your caption!`);
+        });
       }
-    }
-    
-    // Method 3: Direct URL opening
-    try {
-      // Try to open Farcaster app directly
-      window.open(farcasterIntentUrl, '_blank');
-    } catch (error) {
-      // Fallback: copy URL to clipboard
-      navigator.clipboard.writeText(videoUrl).then(() => {
-        alert(`Video uploaded successfully!\n\nVideo URL copied to clipboard: ${videoUrl}\n\nPaste this in Farcaster to share your voice note!`);
-      }).catch(() => {
-        alert(`Video uploaded successfully!\n\nVideo URL: ${videoUrl}\n\nCopy this URL and paste it in Farcaster to share your voice note!`);
-      });
+    } else {
+      // We're in a standalone browser - use regular URL opening
+      console.log('💻 Using standalone browser method...');
+      
+      const castText = `🎤 Voice Cast\n\nCheck out my voice note!`;
+      const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}&embeds=${encodeURIComponent(videoUrl)}`;
+      
+      try {
+        window.open(composeUrl, '_blank');
+        
+        // Copy URL to clipboard as backup
+        navigator.clipboard.writeText(videoUrl).then(() => {
+          setTimeout(() => {
+            alert(`🎉 Farcaster opened!\n\nVideo URL: ${videoUrl}\n\nIf the video didn't embed automatically, paste the URL in your cast!`);
+          }, 1000);
+        }).catch(() => {
+          console.log('Could not copy to clipboard');
+        });
+        
+      } catch (error) {
+        console.error('❌ Failed to open Farcaster:', error);
+        navigator.clipboard.writeText(videoUrl).then(() => {
+          alert(`🎉 Video ready!\n\nVideo URL copied: ${videoUrl}\n\n1. Open Farcaster\n2. Start a new cast\n3. Paste the URL\n4. Add caption and cast!`);
+        }).catch(() => {
+          alert(`🎉 Video ready!\n\nVideo URL: ${videoUrl}\n\nCopy this and paste it in a new Farcaster cast!`);
+        });
+      }
     }
   };
 
@@ -229,7 +407,7 @@ function App() {
           username: 'user',
           avatar: undefined
         },
-       // message: "Check out my voice note!"
+        message: "Check out my voice note!"
       });
       
       console.log('✅ Video generated!');
@@ -292,11 +470,22 @@ function App() {
         <div className="mb-8">
           {!audioBlob ? (
             <div className="text-center">
-              {/* Debug button - remove after testing */}
+              {/* Debug buttons - remove after testing */}
               {!isRecording && (
-                <button >
-          
-                </button>
+                <div className="flex gap-2 mb-4 justify-center">
+                  <button 
+                    onClick={testBrowserSupport}
+                    className="px-3 py-2 bg-blue-500 text-white rounded text-xs"
+                  >
+                   
+                  </button>
+                  <button 
+                    onClick={testMobileCapabilities}
+                    className="px-3 py-2 bg-green-500 text-white rounded text-xs"
+                  >
+                   
+                  </button>
+                </div>
               )}
 
               <div className="relative mb-6">
@@ -319,7 +508,7 @@ function App() {
                   <div className="text-white text-lg font-mono">
                     {formatTime(recordingTime)}
                   </div>
-                  <div className="text-white/70 text-sm"></div>
+                  <div className="text-white/70 text-sm">Recording...</div>
                 </div>
               )}
 
