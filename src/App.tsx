@@ -1,5 +1,5 @@
 import { sdk } from "@farcaster/frame-sdk";
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Play, Pause, Send, Trash2, Volume2, RotateCcw } from 'lucide-react';
 import { uploadAudioFile } from './utils/supabase';
 

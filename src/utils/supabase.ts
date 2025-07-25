@@ -15,7 +15,7 @@ export const uploadAudioFile = async (audioBlob: Blob, fileName: string): Promis
   try {
     console.log('Starting upload:', fileName)
     
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('voice-recordings')
       .upload(fileName, audioBlob, {
         contentType: 'audio/wav',
