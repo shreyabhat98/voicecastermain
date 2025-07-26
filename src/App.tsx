@@ -317,12 +317,7 @@ function App() {
         // Generate simple video from audio - keep it minimal like before
         videoBlob = await generateVideoFromAudio({
           audioBlob,
-          duration: videoDuration,
-          userProfile: {
-            username: 'user',
-            avatar: undefined
-          },
-          message: "Voice note"
+          duration: videoDuration
         });
         
         console.log('✅ Video generated! Size:', videoBlob.size);
