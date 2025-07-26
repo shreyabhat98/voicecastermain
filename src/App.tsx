@@ -273,7 +273,9 @@ function App() {
         console.log('📱 Using Farcaster composeCast SDK...');
         
         await sdk.actions.composeCast({
-          text: `🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`,
+         // text: `🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`,
+          text: `🎤 Voice cast via VoiceCaster`,
+          embeds: [videoUrl],
         });
         
         console.log('✅ Cast composed successfully!');
