@@ -62,59 +62,6 @@ function App() {
     }, 2000);
   }, []);
 
-  // Debug function to test browser support
-  const testBrowserSupport = () => {
-    console.log('🔍 Testing browser support...');
-    
-    // Check MediaRecorder support
-    console.log('MediaRecorder supported:', !!window.MediaRecorder);
-    
-    // Check Canvas support
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    console.log('Canvas 2D supported:', !!ctx);
-    
-    // Check captureStream support
-    console.log('Canvas captureStream supported:', !!(canvas as any).captureStream);
-    
-    // Check AudioContext support
-    console.log('AudioContext supported:', !!(window.AudioContext || (window as any).webkitAudioContext));
-    
-    // Check supported MIME types
-    const mimeTypes = [
-      'video/webm;codecs=vp9',
-      'video/webm;codecs=vp8',
-      'video/webm',
-      'video/mp4'
-    ];
-    
-    mimeTypes.forEach(type => {
-      console.log(`${type} supported:`, MediaRecorder.isTypeSupported(type));
-    });
-  };
-
-  // Add this function to test mobile capabilities
-  const testMobileCapabilities = () => {
-    console.log('📱 Testing mobile capabilities...');
-    console.log('User agent:', navigator.userAgent);
-    console.log('Is mobile:', /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
-    console.log('getUserMedia supported:', !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
-    console.log('MediaRecorder supported:', !!window.MediaRecorder);
-    
-    // Test supported audio formats on mobile
-    const audioFormats = [
-      'audio/webm;codecs=opus',
-      'audio/webm',
-      'audio/mp4',
-      'audio/wav',
-      'audio/ogg'
-    ];
-    
-    audioFormats.forEach(format => {
-      console.log(`${format} supported:`, MediaRecorder.isTypeSupported(format));
-    });
-  };
-
   // Start recording - mobile-friendly version
   const startRecording = async () => {
     try {
@@ -296,95 +243,89 @@ function App() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Function to open Farcaster app with the video - Mini App compatible
-  const openFarcasterWithVideo = (videoUrl: string) => {
-    console.log('🚀 Opening Farcaster with video:', videoUrl);
-    console.log('📱 User agent:', navigator.userAgent);
-    console.log('🔍 Parent window:', window.parent !== window ? 'Mini App' : 'Standalone');
+  // Clear recording and start over
+  const redoRecording = () => {
+    setAudioBlob(null);
+    setAudioUrl('');
+    setIsPlaying(false);
+    setDuration(0);
+    setCurrentTime(0);
+    setUploadedUrl('');
+    setRecordingTime(0);
+    setRecordedDuration(0);
+  };
+
+  // Function to post directly to Farcaster using SDK
+  const postDirectlyToFarcaster = async (videoUrl: string) => {
+    console.log('🚀 Posting directly to Farcaster with video:', videoUrl);
     
     // Check if we're running inside Farcaster Mini App
     const isInMiniApp = window.parent !== window || 
                        navigator.userAgent.includes('Farcaster') ||
-                       window.location.href.includes('farcaster.xyz');
+                       window.location.href.includes('farcaster.xyz') ||
+                       window.location.href.includes('warpcast.com');
     
     console.log('🔍 Is in Mini App:', isInMiniApp);
     
-    if (isInMiniApp) {
-      // We're in a Farcaster Mini App - use SDK methods
+    if (isInMiniApp && sdk.actions && sdk.actions.composeCast) {
+      // We're in a Farcaster Mini App - use composeCast
       try {
-        console.log('📱 Using Farcaster Mini App SDK...');
+        console.log('📱 Using Farcaster composeCast SDK...');
         
-        // Method 1: Try to close mini app and open composer
-        const castText = `🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`;
+        await sdk.actions.composeCast({
+          text: `🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`,
+        });
         
-        // Try different SDK approaches
-        if (sdk.actions.close) {
-          console.log('🔄 Closing mini app...');
-          sdk.actions.close();
-          
-          // Try to open compose after closing
-          setTimeout(() => {
-            const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}`;
-            window.open(composeUrl, '_parent');
-          }, 500);
-        } else if (sdk.actions.openUrl) {
-          console.log('🔗 Opening URL via SDK...');
-          const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}`;
-          sdk.actions.openUrl(composeUrl);
-        } else {
-          // Fallback: try to navigate parent window
-          console.log('🔄 Fallback: navigating parent...');
-          const castText = `🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`;
-          const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}`;
-          window.parent.location.href = composeUrl;
-        }
+        console.log('✅ Cast composed successfully!');
+        alert(`✅ Cast posted successfully!\n\n${videoUrl}`);
         
-        // Show success message
-        setTimeout(() => {
-          alert(`🎉 Video ready to cast!\n\nVideo URL: ${videoUrl}\n\nThe Farcaster composer should open with your video ready to share!`);
-        }, 1000);
+        // Reset the recording after successful cast
+        redoRecording();
         
       } catch (error) {
-        console.error('❌ Mini App SDK failed:', error);
+        console.error('❌ composeCast failed:', error);
         
-        // Fallback for mini app
+        // Fallback: copy URL and show instructions
         navigator.clipboard.writeText(videoUrl).then(() => {
-          alert(`🎉 Video uploaded!\n\nVideo URL copied to clipboard: ${videoUrl}\n\n1. Close this mini app\n2. Start a new cast\n3. Paste the video URL\n4. Add your caption and cast!`);
+          alert(`🎉 Video ready!\n\ncomposeCast failed, but video URL copied: ${videoUrl}\n\n📱 Manual steps:\n1. Close this mini app\n2. Open Farcaster\n3. Paste the video URL in a new cast\n4. Add your caption and cast!`);
         }).catch(() => {
-          alert(`🎉 Video uploaded!\n\nVideo URL: ${videoUrl}\n\n1. Copy this URL\n2. Close this mini app\n3. Start a new cast\n4. Paste the URL and add your caption!`);
+          alert(`🎉 Video ready!\n\ncomposeCast failed\n\nVideo URL: ${videoUrl}\n\n📱 Manual steps:\n1. Copy this URL\n2. Close this mini app\n3. Open Farcaster\n4. Paste the URL and cast!`);
         });
       }
     } else {
-      // We're in a standalone browser - use regular URL opening
-      console.log('💻 Using standalone browser method...');
-      
-      const castText = `🎤 Voice Cast\n\nCheck out my voice note!`;
-      const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}&embeds=${encodeURIComponent(videoUrl)}`;
+      // We're NOT in a mini app or composeCast not available
+      console.log('💻 Not in mini app or composeCast not available, using fallback...');
       
       try {
+        // Try opening Farcaster composer
+        const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`)}`;
+        
         window.open(composeUrl, '_blank');
         
         // Copy URL to clipboard as backup
         navigator.clipboard.writeText(videoUrl).then(() => {
           setTimeout(() => {
-            alert(`🎉 Farcaster opened!\n\nVideo URL: ${videoUrl}\n\nIf the video didn't embed automatically, paste the URL in your cast!`);
+            alert(`🎉 Farcaster opened!\n\nVideo URL: ${videoUrl}\n\n📋 URL copied to clipboard!\n\nIf the video didn't auto-fill, paste the URL in your cast!`);
           }, 1000);
         }).catch(() => {
-          console.log('Could not copy to clipboard');
+          setTimeout(() => {
+            alert(`🎉 Farcaster opened!\n\nVideo URL: ${videoUrl}\n\nPaste this URL in your cast!`);
+          }, 1000);
         });
         
       } catch (error) {
         console.error('❌ Failed to open Farcaster:', error);
+        
         navigator.clipboard.writeText(videoUrl).then(() => {
-          alert(`🎉 Video ready!\n\nVideo URL copied: ${videoUrl}\n\n1. Open Farcaster\n2. Start a new cast\n3. Paste the URL\n4. Add caption and cast!`);
+          alert(`🎉 Video ready!\n\nVideo URL copied: ${videoUrl}\n\n📱 Steps:\n1. Open Farcaster (warpcast.com)\n2. Start a new cast\n3. Paste the video URL\n4. Add your caption and cast!`);
         }).catch(() => {
-          alert(`🎉 Video ready!\n\nVideo URL: ${videoUrl}\n\nCopy this and paste it in a new Farcaster cast!`);
+          alert(`🎉 Video ready!\n\nVideo URL: ${videoUrl}\n\n📱 Steps:\n1. Copy this URL\n2. Open Farcaster\n3. Paste in a new cast and add caption!`);
         });
       }
     }
   };
 
-  // Post to Farcaster (generates video and opens Farcaster app)
+  // Post to Farcaster (generates video and posts directly)
   const postToFarcaster = async () => {
     if (!audioBlob) return;
     
@@ -423,9 +364,9 @@ function App() {
       console.log('🎉 Upload complete!');
       console.log('🔗 Video URL:', videoUrl);
       
-      // Open Farcaster with the video
-      console.log('🚀 Opening Farcaster...');
-      openFarcasterWithVideo(videoUrl);
+      // Post directly to Farcaster using SDK
+      console.log('🚀 Posting to Farcaster...');
+      await postDirectlyToFarcaster(videoUrl);
       
     } catch (error) {
       console.error('❌ Process failed:', error);
@@ -434,18 +375,6 @@ function App() {
     } finally {
       setIsUploading(false);
     }
-  };
-
-  // Clear recording and start over
-  const redoRecording = () => {
-    setAudioBlob(null);
-    setAudioUrl('');
-    setIsPlaying(false);
-    setDuration(0);
-    setCurrentTime(0);
-    setUploadedUrl('');
-    setRecordingTime(0);
-    setRecordedDuration(0);
   };
 
   // Loading screen - just bouncing mic on gradient
@@ -470,24 +399,6 @@ function App() {
         <div className="mb-8">
           {!audioBlob ? (
             <div className="text-center">
-              {/* Debug buttons - remove after testing */}
-              {!isRecording && (
-                <div className="flex gap-2 mb-4 justify-center">
-                  <button 
-                    onClick={testBrowserSupport}
-                    className="px-3 py-2 bg-blue-500 text-white rounded text-xs"
-                  >
-                   
-                  </button>
-                  <button 
-                    onClick={testMobileCapabilities}
-                    className="px-3 py-2 bg-green-500 text-white rounded text-xs"
-                  >
-                   
-                  </button>
-                </div>
-              )}
-
               <div className="relative mb-6">
                 {/* Main mic circle */}
                 <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center transition-all duration-300 ${
@@ -508,7 +419,7 @@ function App() {
                   <div className="text-white text-lg font-mono">
                     {formatTime(recordingTime)}
                   </div>
-                  <div className="text-white/70 text-sm">Recording...</div>
+                  <div className="text-white/70 text-sm"></div>
                 </div>
               )}
 
