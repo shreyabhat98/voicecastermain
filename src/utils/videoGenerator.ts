@@ -12,7 +12,7 @@ export async function generateVideoFromAudio({
   audioBlob,
   duration,
   userProfile
- // message
+  //message
 }: GenerateVideoOptions): Promise<Blob> {
   return new Promise((resolve, reject) => {
     // Create canvas for video frames

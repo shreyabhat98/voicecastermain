@@ -305,9 +305,10 @@ function App() {
       
       console.log('🎬 Generating video...');
       
-      // Generate video from audio - ensure minimum duration for proper rendering
+      // Calculate video duration - use recorded duration or audio duration
       const videoDuration = Math.max(duration > 0 ? duration : recordedDuration, 1); // Minimum 1 second
       
+      // Generate simple video from audio - keep it minimal like before
       const videoBlob = await generateVideoFromAudio({
         audioBlob,
         duration: videoDuration,
@@ -315,33 +316,30 @@ function App() {
           username: 'user',
           avatar: undefined
         },
-        message: "Check out my voice note!"
+        message: "Voice note"
       });
       
       console.log('✅ Video generated!');
-      console.log('📤 Uploading to Supabase...');
+      console.log('📤 Testing with Twitter for inline embedding...');
       
-      // Upload video to Supabase
+      // Instead of Supabase, let's test with a service that definitely embeds
+      // Upload to a temporary hosting service that Farcaster recognizes
+      
+      // For now, let's upload to Supabase but use direct video URL
       const timestamp = Date.now();
-      const videoFileName = `voice-video-${timestamp}.mp4`; // Changed to .mp4 for better compatibility
+      const videoFileName = `voice-video-${timestamp}.mp4`;
       const videoUrl = await uploadAudioFile(videoBlob, videoFileName);
       
-      // Create a wrapper URL with Open Graph tags for proper video embedding
-      const videoId = `video-${timestamp}`;
-      const wrapperUrl = `${window.location.origin}/api/video/${videoId}?video=${encodeURIComponent(videoUrl)}`;
-      
-      setUploadedUrl(wrapperUrl);
+      setUploadedUrl(videoUrl);
       
       console.log('🎉 Upload complete!');
-      console.log('🔗 Video URL:', videoUrl);
-      console.log('🔗 Wrapper URL:', wrapperUrl);
+      console.log('🔗 Direct Video URL:', videoUrl);
       
-      // Since you're in Farcaster Mini App, use SDK method with wrapper URL
-      console.log('🚀 Posting via Mini App SDK...');
-      const sdkSuccess = await postUsingMiniAppSDK(wrapperUrl); // Use wrapper URL for preview
+      // Test: Let's try posting the direct video URL first
+      console.log('🚀 Posting direct video URL via SDK...');
+      const sdkSuccess = await postUsingMiniAppSDK(videoUrl);
       
       if (!sdkSuccess) {
-        // If SDK fails, show error
         alert(`❌ Failed to post cast.\n\nVideo URL: ${videoUrl}\n\nYou can manually copy this URL and create a cast.`);
       }
       
