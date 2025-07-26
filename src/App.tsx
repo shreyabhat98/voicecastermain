@@ -308,16 +308,29 @@ function App() {
       // Calculate video duration - use recorded duration or audio duration
       const videoDuration = Math.max(duration > 0 ? duration : recordedDuration, 1); // Minimum 1 second
       
-      // Generate simple video from audio - keep it minimal like before
-      const videoBlob = await generateVideoFromAudio({
-        audioBlob,
-        duration: videoDuration,
-        userProfile: {
-          username: 'user',
-          avatar: undefined
-        },
-        message: "Voice note"
-      });
+      console.log('Video duration:', videoDuration);
+      console.log('Audio blob size:', audioBlob.size);
+      
+      let videoBlob: Blob;
+      
+      try {
+        // Generate simple video from audio - keep it minimal like before
+        videoBlob = await generateVideoFromAudio({
+          audioBlob,
+          duration: videoDuration,
+          userProfile: {
+            username: 'user',
+            avatar: undefined
+          },
+          message: "Voice note"
+        });
+        
+        console.log('✅ Video generated! Size:', videoBlob.size);
+      } catch (error) {
+        console.error('❌ Video generation failed:', error);
+        alert('Video generation failed: ' + (error as Error).message);
+        return;
+      }
       
       console.log('✅ Video generated!');
       console.log('📤 Testing with Twitter for inline embedding...');
