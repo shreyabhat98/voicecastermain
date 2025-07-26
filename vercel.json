@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/video/[videoId].js": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/video/(.*)",
+      "destination": "/api/video/[videoId]"
+    }
+  ]
+}

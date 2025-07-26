@@ -48,6 +48,8 @@ function App() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordedDuration, setRecordedDuration] = useState(0);
   
+  const MAX_RECORDING_TIME = 90; // 90 seconds limit
+  
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -139,9 +141,17 @@ function App() {
       setIsRecording(true);
       setRecordingTime(0);
       
-      // Start timer
+      // Start timer with 90-second limit
       timerRef.current = window.setInterval(() => {
-        setRecordingTime(prev => prev + 1);
+        setRecordingTime(prev => {
+          const newTime = prev + 1;
+          // Auto-stop at 90 seconds
+          if (newTime >= MAX_RECORDING_TIME) {
+            stopRecording();
+            return MAX_RECORDING_TIME;
+          }
+          return newTime;
+        });
       }, 1000);
       
       console.log('🔴 Recording started successfully');
@@ -255,79 +265,67 @@ function App() {
     setRecordedDuration(0);
   };
 
-  // Function to post directly to Farcaster using SDK
-  const postDirectlyToFarcaster = async (videoUrl: string) => {
-    console.log('🚀 Posting directly to Farcaster with video:', videoUrl);
+  // Function to open Farcaster with video embedded using Warpcast Intent URLs
+  const openFarcasterWithVideo = (videoUrl: string) => {
+    console.log('🚀 Opening Farcaster with video:', videoUrl);
     
-    // Check if we're running inside Farcaster Mini App
-    const isInMiniApp = window.parent !== window || 
-                       navigator.userAgent.includes('Farcaster') ||
-                       window.location.href.includes('farcaster.xyz') ||
-                       window.location.href.includes('warpcast.com');
+    // Create the Warpcast intent URL with video embedded
+    const castText = '🎤 Voice cast via VoiceCaster';
+    // Use the exact format from Farcaster docs: embeds[]=URL
+    const intentUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}&embeds[]=${encodeURIComponent(videoUrl)}`;
     
-    console.log('🔍 Is in Mini App:', isInMiniApp);
+    console.log('🔗 Intent URL:', intentUrl);
     
-    if (isInMiniApp && sdk.actions && sdk.actions.composeCast) {
-      // We're in a Farcaster Mini App - use composeCast
-      try {
-        console.log('📱 Using Farcaster composeCast SDK...');
-        
-        await sdk.actions.composeCast({
-         // text: `🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`,
-          text: `🎤 Voice cast via VoiceCaster`,
-          embeds: [videoUrl],
-        });
-        
-        console.log('✅ Cast composed successfully!');
-        alert(`✅ Cast posted successfully!\n\n${videoUrl}`);
-        
-        // Reset the recording after successful cast
-        redoRecording();
-        
-      } catch (error) {
-        console.error('❌ composeCast failed:', error);
-        
-        // Fallback: copy URL and show instructions
-        navigator.clipboard.writeText(videoUrl).then(() => {
-          alert(`🎉 Video ready!\n\ncomposeCast failed, but video URL copied: ${videoUrl}\n\n📱 Manual steps:\n1. Close this mini app\n2. Open Farcaster\n3. Paste the video URL in a new cast\n4. Add your caption and cast!`);
-        }).catch(() => {
-          alert(`🎉 Video ready!\n\ncomposeCast failed\n\nVideo URL: ${videoUrl}\n\n📱 Manual steps:\n1. Copy this URL\n2. Close this mini app\n3. Open Farcaster\n4. Paste the URL and cast!`);
-        });
-      }
-    } else {
-      // We're NOT in a mini app or composeCast not available
-      console.log('💻 Not in mini app or composeCast not available, using fallback...');
+    try {
+      // Try opening with window.open first (works better cross-platform)
+      const newWindow = window.open(intentUrl, '_blank', 'noopener,noreferrer');
       
-      try {
-        // Try opening Farcaster composer
-        const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`🎤 Voice Cast\n\nCheck out my voice note!\n\n${videoUrl}`)}`;
-        
-        window.open(composeUrl, '_blank');
-        
-        // Copy URL to clipboard as backup
-        navigator.clipboard.writeText(videoUrl).then(() => {
-          setTimeout(() => {
-            alert(`🎉 Farcaster opened!\n\nVideo URL: ${videoUrl}\n\n📋 URL copied to clipboard!\n\nIf the video didn't auto-fill, paste the URL in your cast!`);
-          }, 1000);
-        }).catch(() => {
-          setTimeout(() => {
-            alert(`🎉 Farcaster opened!\n\nVideo URL: ${videoUrl}\n\nPaste this URL in your cast!`);
-          }, 1000);
-        });
-        
-      } catch (error) {
-        console.error('❌ Failed to open Farcaster:', error);
-        
-        navigator.clipboard.writeText(videoUrl).then(() => {
-          alert(`🎉 Video ready!\n\nVideo URL copied: ${videoUrl}\n\n📱 Steps:\n1. Open Farcaster (warpcast.com)\n2. Start a new cast\n3. Paste the video URL\n4. Add your caption and cast!`);
-        }).catch(() => {
-          alert(`🎉 Video ready!\n\nVideo URL: ${videoUrl}\n\n📱 Steps:\n1. Copy this URL\n2. Open Farcaster\n3. Paste in a new cast and add caption!`);
-        });
+      if (!newWindow) {
+        // If popup was blocked, try direct navigation
+        window.location.href = intentUrl;
       }
+      
+      // Give user feedback with domain allowlist info
+      setTimeout(() => {
+        alert(`✅ Farcaster opened with your video URL!\n\n🎬 Video URL: ${videoUrl}\n\n⚠️ Note: If the video doesn't show up as an embed, it's because Supabase domain needs to be allowlisted by Farcaster.\n\nFor now, paste the URL manually and it will work as a link!`);
+      }, 1500);
+      
+    } catch (error) {
+      console.error('❌ Failed to open Farcaster:', error);
+      
+      // Fallback: copy URL and show instructions
+      navigator.clipboard.writeText(videoUrl).then(() => {
+        alert(`🎉 Video ready!\n\n🎬 Video URL copied: ${videoUrl}\n\n📱 Steps:\n1. Open Farcaster (warpcast.com)\n2. Start a new cast\n3. Paste the video URL\n4. Add your caption and cast!`);
+      }).catch(() => {
+        alert(`🎉 Video ready!\n\n🎬 Video URL: ${videoUrl}\n\n📱 Steps:\n1. Copy this URL\n2. Open Farcaster\n3. Paste in a new cast and add caption!`);
+      });
     }
   };
 
-  // Post to Farcaster (generates video and posts directly)
+  // Function to post using Farcaster Mini App SDK if available
+  const postUsingMiniAppSDK = async (videoUrl: string) => {
+    try {
+      console.log('📱 Using Farcaster composeCast SDK...');
+      
+      await sdk.actions.composeCast({
+        text: `🎤 Voice cast via VoiceCaster`,
+        embeds: [videoUrl],
+      });
+      
+      console.log('✅ Cast composed successfully via SDK!');
+      alert(`✅ Cast posted successfully!\n\n🎬 ${videoUrl}`);
+      
+      // Reset the recording after successful cast
+      redoRecording();
+      return true;
+      
+    } catch (error) {
+      console.error('❌ composeCast SDK failed:', error);
+      return false;
+    }
+  };
+
+  // Main function to post to Farcaster - tries SDK first, then falls back to intent URL
   const postToFarcaster = async () => {
     if (!audioBlob) return;
     
@@ -342,10 +340,12 @@ function App() {
       
       console.log('🎬 Generating video...');
       
-      // Generate video from audio
+      // Generate video from audio - ensure minimum duration for proper rendering
+      const videoDuration = Math.max(duration > 0 ? duration : recordedDuration, 1); // Minimum 1 second
+      
       const videoBlob = await generateVideoFromAudio({
         audioBlob,
-        duration: duration > 0 ? duration : recordedDuration,
+        duration: videoDuration,
         userProfile: {
           username: 'user',
           avatar: undefined
@@ -361,14 +361,37 @@ function App() {
       const videoFileName = `voice-video-${timestamp}.webm`;
       const videoUrl = await uploadAudioFile(videoBlob, videoFileName);
       
-      setUploadedUrl(videoUrl);
+      // Create a wrapper URL with Open Graph tags for proper video embedding
+      const videoId = `video-${timestamp}`;
+      const wrapperUrl = `${window.location.origin}/video/${videoId}?video=${encodeURIComponent(videoUrl)}`;
+      
+      setUploadedUrl(wrapperUrl);
       
       console.log('🎉 Upload complete!');
       console.log('🔗 Video URL:', videoUrl);
       
-      // Post directly to Farcaster using SDK
-      console.log('🚀 Posting to Farcaster...');
-      await postDirectlyToFarcaster(videoUrl);
+      // Check if we're in a Farcaster Mini App environment
+      const isInMiniApp = window.parent !== window || 
+                         navigator.userAgent.includes('Farcaster') ||
+                         window.location.href.includes('farcaster.xyz') ||
+                         window.location.href.includes('warpcast.com');
+      
+      console.log('🔍 Is in Mini App:', isInMiniApp);
+      
+      if (isInMiniApp && sdk.actions && typeof sdk.actions.composeCast === 'function') {
+        // Try using the Mini App SDK first
+        const sdkSuccess = await postUsingMiniAppSDK(wrapperUrl);
+        
+        if (!sdkSuccess) {
+          // SDK failed, fallback to intent URL
+          console.log('🔄 SDK failed, falling back to intent URL...');
+          openFarcasterWithVideo(wrapperUrl);
+        }
+      } else {
+        // Not in mini app or SDK not available, use intent URL directly
+        console.log('💻 Using Warpcast intent URL...');
+        openFarcasterWithVideo(wrapperUrl);
+      }
       
     } catch (error) {
       console.error('❌ Process failed:', error);
@@ -421,7 +444,9 @@ function App() {
                   <div className="text-white text-lg font-mono">
                     {formatTime(recordingTime)}
                   </div>
-                  <div className="text-white/70 text-sm"></div>
+                  <div className="text-white/70 text-sm">
+                    {recordingTime >= MAX_RECORDING_TIME ? 'Maximum length reached' : `${MAX_RECORDING_TIME - recordingTime}s remaining`}
+                  </div>
                 </div>
               )}
 
@@ -531,7 +556,7 @@ function App() {
               {uploadedUrl && (
                 <div className="mt-4 p-3 bg-green-500/10 border border-green-400/20 rounded-xl">
                   <div className="text-green-400 text-sm font-semibold mb-1">✓ Opening Farcaster...</div>
-                  <div className="text-green-300 text-xs truncate">Your video is ready to cast!</div>
+                  <div className="text-green-300 text-xs truncate">Your video should be pre-loaded!</div>
                 </div>
               )}
             </div>
