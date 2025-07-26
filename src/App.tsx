@@ -323,17 +323,22 @@ function App() {
       
       // Upload video to Supabase
       const timestamp = Date.now();
-      const videoFileName = `voice-video-${timestamp}.webm`;
+      const videoFileName = `voice-video-${timestamp}.mp4`; // Changed to .mp4 for better compatibility
       const videoUrl = await uploadAudioFile(videoBlob, videoFileName);
       
-      setUploadedUrl(videoUrl);
+      // Create a wrapper URL with Open Graph tags for proper video embedding
+      const videoId = `video-${timestamp}`;
+      const wrapperUrl = `${window.location.origin}/api/video/${videoId}?video=${encodeURIComponent(videoUrl)}`;
+      
+      setUploadedUrl(wrapperUrl);
       
       console.log('🎉 Upload complete!');
       console.log('🔗 Video URL:', videoUrl);
+      console.log('🔗 Wrapper URL:', wrapperUrl);
       
-      // Since you're in Farcaster Mini App, ONLY use SDK method
+      // Since you're in Farcaster Mini App, use SDK method with wrapper URL
       console.log('🚀 Posting via Mini App SDK...');
-      const sdkSuccess = await postUsingMiniAppSDK(videoUrl);
+      const sdkSuccess = await postUsingMiniAppSDK(wrapperUrl); // Use wrapper URL for preview
       
       if (!sdkSuccess) {
         // If SDK fails, show error
