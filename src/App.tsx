@@ -265,55 +265,20 @@ function App() {
     setRecordedDuration(0);
   };
 
-  // Function to open Farcaster with video embedded using Warpcast Intent URLs
-  const openFarcasterWithVideo = (videoUrl: string) => {
-    console.log('🚀 Opening Farcaster with video:', videoUrl);
-    
-    // Create the Warpcast intent URL with video embedded
-    const castText = '🎤 Voice cast via VoiceCaster';
-    // Use the exact format from Farcaster docs: embeds[]=URL
-    const intentUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}&embeds[]=${encodeURIComponent(videoUrl)}`;
-    
-    console.log('🔗 Intent URL:', intentUrl);
-    
-    try {
-      // Try opening with window.open first (works better cross-platform)
-      const newWindow = window.open(intentUrl, '_blank', 'noopener,noreferrer');
-      
-      if (!newWindow) {
-        // If popup was blocked, try direct navigation
-        window.location.href = intentUrl;
-      }
-      
-      // Give user feedback with domain allowlist info
-      setTimeout(() => {
-        alert(`✅ Farcaster opened with your video URL!\n\n🎬 Video URL: ${videoUrl}\n\n⚠️ Note: If the video doesn't show up as an embed, it's because Supabase domain needs to be allowlisted by Farcaster.\n\nFor now, paste the URL manually and it will work as a link!`);
-      }, 1500);
-      
-    } catch (error) {
-      console.error('❌ Failed to open Farcaster:', error);
-      
-      // Fallback: copy URL and show instructions
-      navigator.clipboard.writeText(videoUrl).then(() => {
-        alert(`🎉 Video ready!\n\n🎬 Video URL copied: ${videoUrl}\n\n📱 Steps:\n1. Open Farcaster (warpcast.com)\n2. Start a new cast\n3. Paste the video URL\n4. Add your caption and cast!`);
-      }).catch(() => {
-        alert(`🎉 Video ready!\n\n🎬 Video URL: ${videoUrl}\n\n📱 Steps:\n1. Copy this URL\n2. Open Farcaster\n3. Paste in a new cast and add caption!`);
-      });
-    }
-  };
 
-  // Function to post using Farcaster Mini App SDK if available
+
+  // Function to post using Farcaster Mini App SDK
   const postUsingMiniAppSDK = async (videoUrl: string) => {
     try {
       console.log('📱 Using Farcaster composeCast SDK...');
       
       await sdk.actions.composeCast({
         text: `🎤 Voice cast via VoiceCaster`,
-        embeds: [videoUrl],
+        embeds: [videoUrl], // Use the direct video URL, not wrapper
       });
       
       console.log('✅ Cast composed successfully via SDK!');
-      alert(`✅ Cast posted successfully!\n\n🎬 ${videoUrl}`);
+      alert(`✅ Cast posted successfully!`);
       
       // Reset the recording after successful cast
       redoRecording();
@@ -361,36 +326,18 @@ function App() {
       const videoFileName = `voice-video-${timestamp}.webm`;
       const videoUrl = await uploadAudioFile(videoBlob, videoFileName);
       
-      // Create a wrapper URL with Open Graph tags for proper video embedding
-      const videoId = `video-${timestamp}`;
-      const wrapperUrl = `${window.location.origin}/video/${videoId}?video=${encodeURIComponent(videoUrl)}`;
-      
-      setUploadedUrl(wrapperUrl);
+      setUploadedUrl(videoUrl);
       
       console.log('🎉 Upload complete!');
       console.log('🔗 Video URL:', videoUrl);
       
-      // Check if we're in a Farcaster Mini App environment
-      const isInMiniApp = window.parent !== window || 
-                         navigator.userAgent.includes('Farcaster') ||
-                         window.location.href.includes('farcaster.xyz') ||
-                         window.location.href.includes('warpcast.com');
+      // Since you're in Farcaster Mini App, ONLY use SDK method
+      console.log('🚀 Posting via Mini App SDK...');
+      const sdkSuccess = await postUsingMiniAppSDK(videoUrl);
       
-      console.log('🔍 Is in Mini App:', isInMiniApp);
-      
-      if (isInMiniApp && sdk.actions && typeof sdk.actions.composeCast === 'function') {
-        // Try using the Mini App SDK first
-        const sdkSuccess = await postUsingMiniAppSDK(wrapperUrl);
-        
-        if (!sdkSuccess) {
-          // SDK failed, fallback to intent URL
-          console.log('🔄 SDK failed, falling back to intent URL...');
-          openFarcasterWithVideo(wrapperUrl);
-        }
-      } else {
-        // Not in mini app or SDK not available, use intent URL directly
-        console.log('💻 Using Warpcast intent URL...');
-        openFarcasterWithVideo(wrapperUrl);
+      if (!sdkSuccess) {
+        // If SDK fails, show error
+        alert(`❌ Failed to post cast.\n\nVideo URL: ${videoUrl}\n\nYou can manually copy this URL and create a cast.`);
       }
       
     } catch (error) {
@@ -555,8 +502,8 @@ function App() {
 
               {uploadedUrl && (
                 <div className="mt-4 p-3 bg-green-500/10 border border-green-400/20 rounded-xl">
-                  <div className="text-green-400 text-sm font-semibold mb-1">✓ Opening Farcaster...</div>
-                  <div className="text-green-300 text-xs truncate">Your video should be pre-loaded!</div>
+                  <div className="text-green-400 text-sm font-semibold mb-1">✓ Opening composer...</div>
+                  <div className="text-green-300 text-xs truncate">Cast should open automatically!</div>
                 </div>
               )}
             </div>
