@@ -125,7 +125,7 @@ export async function generateSimpleVoiceVideo({
       }
       
       // Draw frame function - EXACT VoiceMessageCard styling
-      const drawFrame = (timeProgress: number = 0, isPlaying: boolean = true) => {
+      const drawFrame = (timeProgress: number = 0) => {
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
@@ -161,50 +161,55 @@ export async function generateSimpleVoiceVideo({
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2 - 10; // Slightly up
         
+        // Calculate pulse scale for the profile image/mic icon
+        const pulseScale = 1 + Math.sin(timeProgress * 1.5) * 0.04; // 4% size pulse
+
         // Profile image or mic icon (w-20 h-20 = 80px)
         if (profileImage) {
-          // Draw circular profile image
+          // Draw circular, gently pulsing profile image
           ctx.save();
           ctx.beginPath();
-          ctx.arc(centerX, centerY, 40, 0, Math.PI * 2);
+          ctx.arc(centerX, centerY, 40 * pulseScale, 0, Math.PI * 2);
           ctx.clip();
-          ctx.drawImage(profileImage, centerX - 40, centerY - 40, 80, 80);
+          ctx.drawImage(
+            profileImage,
+            centerX - 40 * pulseScale,
+            centerY - 40 * pulseScale,
+            80 * pulseScale,
+            80 * pulseScale
+          );
           ctx.restore();
-          
+
           // Border around profile image
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(centerX, centerY, 40, 0, Math.PI * 2);
+          ctx.arc(centerX, centerY, 40 * pulseScale, 0, Math.PI * 2);
           ctx.stroke();
         } else {
-          // Mic icon fallback (same as VoiceMessageCard)
+          // Mic icon fallback, also gently pulsing
+          ctx.save();
+          ctx.translate(centerX, centerY);
+          ctx.scale(pulseScale, pulseScale);
           ctx.fillStyle = 'white';
           ctx.font = '48px Arial';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText('🎤', centerX, centerY);
+          ctx.fillText('🎤', 0, 0);
+          ctx.restore();
         }
         
-        // Play/pause controls overlay
-        if (isPlaying) {
-          // Pause bars (same as VoiceMessageCard)
-          ctx.fillStyle = 'white';
-          const barWidth = 6;  // w-1.5 = 6px
-          const barHeight = 24; // h-6 = 24px
-          const barSpacing = 4;  // space-x-1 = 4px
-          
-          ctx.fillRect(centerX - barSpacing/2 - barWidth, centerY - barHeight/2, barWidth, barHeight);
-          ctx.fillRect(centerX + barSpacing/2, centerY - barHeight/2, barWidth, barHeight);
-        } else {
-          // Play triangle (same as VoiceMessageCard)
-          ctx.fillStyle = 'white';
+        // Animated subtle wave rings around profile/mic
+        const ringCount = 2;
+        for (let i = 1; i <= ringCount; i++) {
+          const pulse = Math.sin(timeProgress * 1.5 + i) * 4 + i * 18 + 56; // more subtle amplitude, larger base
+          ctx.save();
           ctx.beginPath();
-          ctx.moveTo(centerX - 6, centerY - 8);
-          ctx.lineTo(centerX + 6, centerY);
-          ctx.lineTo(centerX - 6, centerY + 8);
-          ctx.closePath();
-          ctx.fill();
+          ctx.arc(centerX, centerY, pulse, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255,255,255,${0.08 / i})`;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.restore();
         }
         
         // Bottom section - time and controls
@@ -230,7 +235,7 @@ export async function generateSimpleVoiceVideo({
       };
       
       // Draw initial frame
-      drawFrame(0, true);
+      drawFrame(0);
       
       // Create streams
       const canvasStream = canvas.captureStream(2); // Slightly higher for smooth animation
@@ -277,14 +282,13 @@ export async function generateSimpleVoiceVideo({
       
       // Animation during recording - toggle play/pause state
       let animationStartTime = Date.now();
-      let isPlaying = true;
-      
+      // let isPlaying = true; // Remove unused variable
+
       const animateCard = () => {
         const elapsed = (Date.now() - animationStartTime) / 1000;
         if (elapsed < actualDuration) {
-          // Toggle play/pause every 2 seconds for demo
-          isPlaying = Math.floor(elapsed / 2) % 2 === 0;
-          drawFrame(elapsed, isPlaying);
+          // No need to toggle play/pause, just animate
+          drawFrame(elapsed);
           setTimeout(animateCard, 200); // Update every 200ms
         }
       };
