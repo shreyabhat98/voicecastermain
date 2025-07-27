@@ -54,18 +54,21 @@ const VoiceMessageCard = ({
   };
   recordedDuration: number;
 }) => {
-  const profile = userProfile || {
-    name: "You",
-    username: "@voicecaster", 
-    avatar: "https://via.placeholder.com/64x64/8B5CF6/FFFFFF?text=🎤"
-  };
+  const [imgError, setImgError] = useState(false);
 
   const formatTime = (seconds: number) => {
-    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+    if (typeof seconds !== 'number' || isNaN(seconds) || !isFinite(seconds) || seconds < 0) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Always prefer duration if available, else recordedDuration
+  const totalDuration = (duration && duration > 0)
+    ? duration
+    : (recordedDuration && recordedDuration > 0)
+      ? recordedDuration
+      : undefined;
 
   return (
     <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 relative overflow-hidden">
@@ -73,36 +76,49 @@ const VoiceMessageCard = ({
       <div className="absolute top-4 right-4">
         <Volume2 className="w-5 h-5 text-white/70" />
       </div>
-      
       <div className="text-white mb-4">
         <p className="text-lg font-medium"></p>
       </div>
-      
       <div className="relative">
-        <div className="relative w-32 h-32 mx-auto">
-          {isPlaying && (
-            <>
-              <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-ping"></div>
-              <div className="absolute inset-2 rounded-full border-2 border-white/20 animate-ping" style={{ animationDelay: '0.2s' }}></div>
-              <div className="absolute inset-4 rounded-full border-2 border-white/10 animate-ping" style={{ animationDelay: '0.4s' }}></div>
-            </>
-          )}
-          
-          <div className="absolute inset-6 rounded-full overflow-hidden border-3 border-white/50">
-            <img 
-              src={profile.avatar} 
-              alt={profile.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                console.log('Image failed to load:', profile.avatar);
-                e.currentTarget.src = "https://via.placeholder.com/64x64/8B5CF6/FFFFFF?text=🎤";
-              }}
-            />
+        <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
+          {/* Avatar or fallback */}
+          <div className="flex items-center justify-center w-20 h-20 mx-auto">
+            {(!imgError && userProfile?.avatar) ? (
+              <img
+                src={userProfile.avatar}
+                alt={userProfile.name || 'User Profile'}
+                className="w-full h-full object-cover"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <svg 
+                width="64" 
+                height="64" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-purple-500"
+              >
+                <path
+                  d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M12 19V22H8V24H16V22H12V19Z"
+                  fill="currentColor"
+                />
+              </svg>
+            )}
           </div>
-          
+          {/* Play/Pause button overlay */}
           <button
             onClick={onPlayPause}
-            className="absolute inset-0 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/30 transition-all"
+            className="absolute inset-0 flex items-center justify-center focus:outline-none"
+            style={{ background: 'transparent', border: 'none' }}
           >
             {isPlaying ? (
               <div className="flex space-x-1">
@@ -114,10 +130,12 @@ const VoiceMessageCard = ({
             )}
           </button>
         </div>
-        
         <div className="flex items-center justify-between mt-4 text-white">
           <div className="flex items-center space-x-2">
-            <span className="text-lg font-mono">{formatTime(currentTime || 0)}/{formatTime(duration > 0 ? duration : recordedDuration)}</span>
+            <span className="text-lg font-mono">
+              {formatTime(currentTime)}
+              {totalDuration && totalDuration > 0 ? `/${formatTime(totalDuration)}` : ''}
+            </span>
           </div>
           <div className="flex items-center space-x-2 text-white/80">
             <Mic className="w-4 h-4" />
@@ -143,6 +161,7 @@ function App() {
   const [shareOption, setShareOption] = useState<'link' | 'video' | null>(null);
   const [generatedLink, setGeneratedLink] = useState('');
   const [userProfile, setUserProfile] = useState<{name?: string; username?: string; avatar?: string} | null>(null);
+  const [generatedVideoBlob, setGeneratedVideoBlob] = useState<Blob | null>(null); // NEW: Store generated video
   
   const MAX_RECORDING_TIME = 90;
   
@@ -296,7 +315,12 @@ function App() {
 
     const handleLoadedMetadata = () => {
       console.log('Audio metadata loaded, duration:', audio.duration);
-      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+      if (
+        audio.duration &&
+        !isNaN(audio.duration) &&
+        isFinite(audio.duration) &&
+        audio.duration !== Infinity
+      ) {
         setDuration(audio.duration);
       } else {
         // Fallback: use recorded duration if audio duration is invalid
@@ -354,25 +378,31 @@ function App() {
     setGeneratedLink('');
     setRecordingTime(0);
     setRecordedDuration(0);
+    setGeneratedVideoBlob(null); // Clear generated video
   };
 
-  // Download video function - WEB SHARE API ONLY (Direct to Photos)
-  const downloadVideo = async (videoBlob: Blob) => {
-    const timestamp = Date.now();
-    const filename = `voice-message-${timestamp}.mp4`;
-    
-    console.log('📱 Video blob size:', videoBlob.size, 'bytes');
-    
-    // Check if Web Share API is available
-    if (!navigator.share) {
-      alert('❌ Web Share not supported\n\nYour browser doesn\'t support direct saving to Photos. Please use the "Share Link" option instead, or open VoiceCaster in Safari/Chrome.');
+  // Web Share API function - INSTANT (no async delays)
+  const saveToPhotos = async () => {
+    if (!generatedVideoBlob) {
+      alert('❌ No video ready. Please generate video first.');
       return;
     }
+
+    const timestamp = Date.now();
+    const filename = `voice-message-${timestamp}.mp4`;
+    const sizeMB = generatedVideoBlob.size / 1024 / 1024;
     
+    console.log('📱 INSTANT Web Share API call - blob size:', generatedVideoBlob.size);
+    
+    if (!navigator.share) {
+      alert('❌ Web Share not supported in this browser.\n\nPlease use Safari or Chrome for direct saving to Photos.');
+      return;
+    }
+
     try {
-      const file = new File([videoBlob], filename, { type: 'video/mp4' });
+      const file = new File([generatedVideoBlob], filename, { type: 'video/mp4' });
       
-      console.log('📱 Using Web Share API with file size:', file.size);
+      console.log('📱 Web Share API - IMMEDIATE call with preserved gesture');
       
       await navigator.share({
         title: '🎤 Voice Message',
@@ -380,26 +410,19 @@ function App() {
         files: [file]
       });
       
-      console.log('📱 Successfully shared via Web Share API');
+      console.log('✅ Web Share API SUCCESS!');
       
-      // Show success message
-      setTimeout(() => {
-        alert('✅ Video shared successfully!\n\n📱 To save to Photos:\n• Choose "Save to Photos" from the share menu\n• Or share directly to other apps\n\nYour video is ready! 🎉');
-      }, 500);
-      
-         } catch (error) {
-       console.error('📱 Web Share API failed:', error);
-       
-       // If user cancelled, don't show error
-       if (error instanceof Error && error.name === 'AbortError') {
-         console.log('User cancelled share');
-         return;
-       }
-       
-       // For other errors, suggest alternative
-       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-       alert(`❌ Share failed: ${errorMessage}\n\n💡 Try these alternatives:\n• Use "Share Link" option instead\n• Open VoiceCaster in Safari/Chrome\n• Check if you have enough storage space`);
-     }
+    } catch (error) {
+      console.error('❌ Web Share API failed:', error);
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('User cancelled share');
+        return;
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`❌ Share failed: ${errorMessage}\n\n💡 Try:\n• Make sure you have storage space\n• Try in Safari/Chrome\n• Check file size: ${sizeMB.toFixed(1)}MB`);
+    }
   };
 
   // Copy link function
@@ -411,7 +434,7 @@ function App() {
     }
   };
 
-  // Handle share options
+  // Handle share options - TWO STEP PROCESS for video
   const handleShareOption = async (option: 'link' | 'video') => {
     if (!audioBlob) return;
     
@@ -434,8 +457,8 @@ function App() {
           // Fallback to manual copy
         }
       } else {
-        // Generate video with audio
-        console.log('Generating video...');
+        // STEP 1: Generate video and store it (preserve for instant Web Share later)
+        console.log('🎬 STEP 1: Generating video...');
         console.log('Audio blob size:', audioBlob.size, 'Duration:', duration > 0 ? duration : recordedDuration);
         
         try {
@@ -445,10 +468,13 @@ function App() {
             userProfile: userProfile || undefined
           });
           
-          console.log('Video generated successfully, size:', videoBlob.size);
+          console.log('✅ Video generated successfully, size:', videoBlob.size);
           
-          // Download the video
-          await downloadVideo(videoBlob);
+          // CRITICAL: Store the video blob for instant Web Share API
+          setGeneratedVideoBlob(videoBlob);
+          
+          console.log('🎯 Video ready for INSTANT Web Share API call!');
+          
         } catch (videoError) {
           console.error('Video generation failed:', videoError);
           alert('Video generation failed. The audio might be too long or the file too large. Try the Share Link option instead.');
@@ -471,6 +497,7 @@ function App() {
     );
   }
 
+  console.log('VoiceMessageCard props:', { duration, recordedDuration });
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-indigo-600 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
@@ -583,20 +610,41 @@ function App() {
                   {isProcessing ? (
                     <div className="text-center">
                       <BouncingMic />
-                      <p className="text-white mt-4">Generating video with waveforms...</p>
+                      <p className="text-white mt-4">Generating video..</p>
+                    </div>
+                  ) : generatedVideoBlob ? (
+                    <div>
+                      <h3 className="text-white font-semibold mb-4">✅ Video Ready for saving!</h3>
+                      <p className="text-white/70 text-sm mb-4">
+                        Video generated successfully! Click below to save directly to Gallery.
+                      </p>
+                      <button
+                        onClick={saveToPhotos}
+                        className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center mb-4"
+                      >
+                        <Download className="w-5 h-5 mr-2" />
+                        💾 Save to Gallery
+                      </button>
+                      <button
+                        onClick={() => handleShareOption('video')}
+                        className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Regenerate Video
+                      </button>
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">✓ Ready to Save!</h3>
+                      <h3 className="text-white font-semibold mb-4">❌ Video Generation Failed</h3>
                       <p className="text-white/70 text-sm mb-4">
-                        Video generated! Choose "Save to Photos" from the share menu to save directly to your gallery.
+                        Something went wrong during video generation. Please try again or use Share Link instead.
                       </p>
                       <button
                         onClick={() => handleShareOption('video')}
-                        className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
+                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
                       >
-                        <Download className="w-4 h-4 mr-2" />
-                        Save to Photos Again
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Try Again
                       </button>
                     </div>
                   )}
@@ -640,16 +688,16 @@ function App() {
                   >
                     <Link className="w-6 h-6 mx-auto mb-2" />
                     <div className="font-semibold text-sm">Share Link</div>
-                    <div className="text-xs text-white/70 mt-1">Copy & paste with preview (Recommended for mini apps)</div>
+                    <div className="text-xs text-white/70 mt-1">Copy & paste with preview (link redirects to audio)</div>
                   </button>
 
                   <button
                     onClick={() => handleShareOption('video')}
-                    className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
+                    className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-left"
                   >
                     <Download className="w-6 h-6 mx-auto mb-2" />
-                    <div className="font-semibold text-sm">Save to Photos</div>
-                    <div className="text-xs text-white/70 mt-1">Uses Web Share API (iOS/Android only)</div>
+                    <div className="font-semibold text-sm text-left">Download Video</div>
+                    <div className="text-xs text-white/70 mt-2">Save to device and upload manually as a video</div>
                   </button>
                 </div>
               </div>
