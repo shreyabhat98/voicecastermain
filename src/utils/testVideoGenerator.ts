@@ -162,11 +162,21 @@ export async function generateSimpleVoiceVideo({
         const centerY = canvas.height / 2 - 10; // Slightly up
         
         // Calculate pulse scale for the profile image/mic icon
-        const pulseScale = 1 + Math.sin(timeProgress * 1.5) * 0.04; // 4% size pulse
+        const pulseScale = 1 + Math.sin(timeProgress * 3) * 0.04; // 4% size pulse, faster
 
-        // Profile image or mic icon (w-20 h-20 = 80px)
+        // Draw glowing halo (faded, blurred outline)
+        ctx.save();
+        ctx.globalAlpha = 0.18; // subtle glow
+        ctx.shadowColor = '#fff';
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 44 * pulseScale, 0, Math.PI * 2); // slightly larger than image
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.restore();
+
+        // Draw profile image or mic icon (pulsing)
         if (profileImage) {
-          // Draw circular, gently pulsing profile image
           ctx.save();
           ctx.beginPath();
           ctx.arc(centerX, centerY, 40 * pulseScale, 0, Math.PI * 2);
@@ -187,7 +197,6 @@ export async function generateSimpleVoiceVideo({
           ctx.arc(centerX, centerY, 40 * pulseScale, 0, Math.PI * 2);
           ctx.stroke();
         } else {
-          // Mic icon fallback, also gently pulsing
           ctx.save();
           ctx.translate(centerX, centerY);
           ctx.scale(pulseScale, pulseScale);
@@ -196,19 +205,6 @@ export async function generateSimpleVoiceVideo({
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('🎤', 0, 0);
-          ctx.restore();
-        }
-        
-        // Animated subtle wave rings around profile/mic
-        const ringCount = 2;
-        for (let i = 1; i <= ringCount; i++) {
-          const pulse = Math.sin(timeProgress * 1.5 + i) * 4 + i * 18 + 56; // more subtle amplitude, larger base
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, pulse, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(255,255,255,${0.08 / i})`;
-          ctx.lineWidth = 3;
-          ctx.stroke();
           ctx.restore();
         }
         

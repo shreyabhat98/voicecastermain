@@ -610,7 +610,7 @@ function App() {
                   {isProcessing ? (
                     <div className="text-center">
                       <BouncingMic />
-                      <p className="text-white mt-4">Generating video..</p>
+                      <p className="text-white mt-4">Generating video</p>
                     </div>
                   ) : generatedVideoBlob ? (
                     <div>
