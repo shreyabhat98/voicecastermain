@@ -295,8 +295,13 @@ function App() {
     if (!audio || !audioUrl) return;
 
     const handleLoadedMetadata = () => {
+      console.log('Audio metadata loaded, duration:', audio.duration);
       if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
         setDuration(audio.duration);
+      } else {
+        // Fallback: use recorded duration if audio duration is invalid
+        console.log('Using recorded duration as fallback:', recordedDuration);
+        setDuration(recordedDuration);
       }
     };
 
@@ -309,17 +314,26 @@ function App() {
       setCurrentTime(0);
     };
 
+    const handleCanPlayThrough = () => {
+      // Additional check when audio is fully loaded
+      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
+
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('canplaythrough', handleCanPlayThrough);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
     audio.load();
 
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('canplaythrough', handleCanPlayThrough);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [audioUrl]);
+  }, [audioUrl, recordedDuration]);
 
   // Format time
   const formatTime = (seconds: number) => {
@@ -342,10 +356,12 @@ function App() {
     setRecordedDuration(0);
   };
 
-  // Download video function - MINI APP FRIENDLY
+  // Download video function - MINI APP FRIENDLY (Enhanced for larger files)
   const downloadVideo = async (videoBlob: Blob) => {
     const timestamp = Date.now();
     const filename = `voice-message-${timestamp}.mp4`;
+    
+    console.log('📱 Video blob size:', videoBlob.size, 'bytes');
     
     // Detect if we're in a mini app / embedded webview
     const isMiniApp = window.location !== window.parent.location || 
@@ -355,7 +371,28 @@ function App() {
     
     console.log('🔍 Environment:', { isMiniApp, userAgent: navigator.userAgent });
     
-    // For mini apps, try to open in external browser first
+    // Try Web Share API first (works better for larger files in mini apps)
+    if (navigator.share) {
+      try {
+        const file = new File([videoBlob], filename, { type: 'video/mp4' });
+        
+        console.log('📱 Attempting Web Share API with file size:', file.size);
+        
+        await navigator.share({
+          title: '🎤 Voice Message',
+          text: 'Voice message created with VoiceCaster',
+          files: [file]
+        });
+        
+        console.log('📱 Successfully shared via Web Share API');
+        return;
+      } catch (error) {
+        console.log('📱 Web Share API failed:', error);
+        // Continue to next method
+      }
+    }
+    
+    // For mini apps, try to open in external browser
     if (isMiniApp && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       try {
         // Create a shareable URL instead of trying to download directly
@@ -384,24 +421,6 @@ function App() {
         
       } catch (error) {
         console.log('📱 External browser failed:', error);
-      }
-    }
-    
-    // Try Web Share API first (works better in mini apps)
-    if (navigator.share) {
-      try {
-        const file = new File([videoBlob], filename, { type: 'video/mp4' });
-        
-        await navigator.share({
-          title: '🎤 Voice Message',
-          text: 'Voice message created with VoiceCaster',
-          files: [file]
-        });
-        
-        console.log('📱 Shared via Web Share API');
-        return;
-      } catch (error) {
-        console.log('📱 Web Share API failed:', error);
       }
     }
     
@@ -463,14 +482,23 @@ function App() {
       } else {
         // Generate video with audio
         console.log('Generating video...');
-        const videoBlob = await generateSimpleVoiceVideo({
-          audioBlob,
-          duration: duration > 0 ? duration : recordedDuration,
-          userProfile: userProfile || undefined
-        });
+        console.log('Audio blob size:', audioBlob.size, 'Duration:', duration > 0 ? duration : recordedDuration);
         
-        // Download the video
-        await downloadVideo(videoBlob);
+        try {
+          const videoBlob = await generateSimpleVoiceVideo({
+            audioBlob,
+            duration: duration > 0 ? duration : recordedDuration,
+            userProfile: userProfile || undefined
+          });
+          
+          console.log('Video generated successfully, size:', videoBlob.size);
+          
+          // Download the video
+          await downloadVideo(videoBlob);
+        } catch (videoError) {
+          console.error('Video generation failed:', videoError);
+          alert('Video generation failed. The audio might be too long or the file too large. Try the Share Link option instead.');
+        }
       }
     } catch (error) {
       console.error('Share failed:', error);
@@ -666,8 +694,8 @@ function App() {
                     className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
                   >
                     <Download className="w-6 h-6 mx-auto mb-2" />
-                    <div className="font-semibold text-sm">Download Video </div>
-                    <div className="text-xs text-white/70 mt-1"> May not work in mini apps</div>
+                    <div className="font-semibold text-sm">Download Video</div>
+                    <div className="text-xs text-white/70 mt-1">May not work in mini apps</div>
                   </button>
                 </div>
               </div>
