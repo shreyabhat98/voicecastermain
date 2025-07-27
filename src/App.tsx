@@ -1,8 +1,9 @@
 import { sdk } from "@farcaster/frame-sdk";
 import { useState, useRef, useEffect } from 'react';
-import { Mic, Square, Play, Pause, Send, Trash2, Volume2, RotateCcw } from 'lucide-react';
-import { uploadAudioFile } from './utils/supabase';
-import { generateVideoFromAudio } from './utils/videoGenerator';
+import { Mic, Square, Volume2, RotateCcw, Link, Download, Copy, ExternalLink } from 'lucide-react';
+// import { generateVideoWithWaveform } from './utils/videoGenerator';
+import { generateSimpleVoiceVideo } from './utils/testVideoGenerator';
+import { generateShareableLink } from './utils/linkGenerator';
 
 // Bouncing Mic SVG Component
 const BouncingMic = () => {
@@ -34,6 +35,93 @@ const BouncingMic = () => {
   );
 };
 
+// Voice Message Card Component
+const VoiceMessageCard = ({ 
+  isPlaying, 
+  duration, 
+  currentTime, 
+  onPlayPause,
+  userProfile,
+  recordedDuration
+}: { 
+  isPlaying: boolean; 
+  duration: number; 
+  currentTime: number; 
+  onPlayPause: () => void;
+  userProfile?: {
+    name?: string;
+    username?: string;
+    avatar?: string;
+  };
+  recordedDuration: number;
+}) => {
+  const profile = userProfile || {
+    name: "You",
+    username: "@voicecaster", 
+    avatar: "https://via.placeholder.com/64x64/8B5CF6/FFFFFF?text=🎤"
+  };
+
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 relative overflow-hidden">
+      <div className="text-white mb-4">
+        <p className="text-lg font-medium">y'all ready for a story?</p>
+      </div>
+      
+      <div className="relative">
+        <div className="relative w-32 h-32 mx-auto">
+          {isPlaying && (
+            <>
+              <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-ping"></div>
+              <div className="absolute inset-2 rounded-full border-2 border-white/20 animate-ping" style={{ animationDelay: '0.2s' }}></div>
+              <div className="absolute inset-4 rounded-full border-2 border-white/10 animate-ping" style={{ animationDelay: '0.4s' }}></div>
+            </>
+          )}
+          
+          <div className="absolute inset-6 rounded-full overflow-hidden border-3 border-white/50">
+            <img 
+              src={profile.avatar} 
+              alt={profile.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          
+          <button
+            onClick={onPlayPause}
+            className="absolute inset-0 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/30 transition-all"
+          >
+            {isPlaying ? (
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-6 bg-white rounded-full"></div>
+                <div className="w-1.5 h-6 bg-white rounded-full"></div>
+              </div>
+            ) : (
+              <div className="w-0 h-0 border-l-[12px] border-l-white border-y-[8px] border-y-transparent ml-1"></div>
+            )}
+          </button>
+        </div>
+        
+        <div className="flex items-center justify-between mt-4 text-white">
+          <div className="flex items-center space-x-2">
+            <span className="text-lg font-mono">{formatTime(currentTime || 0)}/{formatTime(duration > 0 ? duration : recordedDuration)}</span>
+          </div>
+          <div className="flex items-center space-x-2 text-white/80">
+            <Volume2 className="w-4 h-4 opacity-70" />
+            <Mic className="w-4 h-4" />
+            <span className="text-sm font-medium">Voice</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
@@ -42,59 +130,73 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [uploadedUrl, setUploadedUrl] = useState('');
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordedDuration, setRecordedDuration] = useState(0);
+  const [shareOption, setShareOption] = useState<'link' | 'video' | null>(null);
+  const [generatedLink, setGeneratedLink] = useState('');
+  const [userProfile, setUserProfile] = useState<{name?: string; username?: string; avatar?: string} | null>(null);
   
-  const MAX_RECORDING_TIME = 90; // 90 seconds limit
+  const MAX_RECORDING_TIME = 90;
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
 
+  // Get user profile from Farcaster SDK
   useEffect(() => {
-    sdk.actions.ready();
-    
-    // Show loading bounce for 2 seconds
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    const initializeApp = async () => {
+      try {
+        await sdk.actions.ready();
+        
+        // Get user profile from Farcaster
+        const context = await sdk.context;
+        if (context.user) {
+          setUserProfile({
+            name: context.user.displayName || context.user.username,
+            username: context.user.username,
+            avatar: context.user.pfpUrl
+          });
+        }
+        
+        // Show loading for 2 seconds
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Failed to initialize app:', error);
+        // Fallback to mock data
+        setUserProfile({
+          name: "You",
+          username: "@voicecaster",
+          avatar: "https://via.placeholder.com/64x64/8B5CF6/FFFFFF?text=🎤"
+        });
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 2000);
+      }
+    };
+
+    initializeApp();
   }, []);
 
-  // Start recording - mobile-friendly version
+  // Start recording
   const startRecording = async () => {
     try {
       console.log('🎤 Starting recording...');
       
-      // Mobile-friendly audio constraints
       const constraints = {
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          // Remove any advanced constraints that might fail on mobile
-          sampleRate: undefined,
-          channelCount: undefined,
-          sampleSize: undefined
         }
       };
       
-      console.log('📱 Requesting microphone access...');
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log('✅ Microphone access granted');
       
-      // Check if MediaRecorder supports the audio stream
-      if (!MediaRecorder.isTypeSupported('audio/webm')) {
-        console.log('audio/webm not supported, trying audio/mp4');
-        if (!MediaRecorder.isTypeSupported('audio/mp4')) {
-          console.log('audio/mp4 not supported, using default');
-        }
-      }
-      
-      // Use supported audio format
       const options: MediaRecorderOptions = {};
       if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
         options.mimeType = 'audio/webm;codecs=opus';
@@ -104,48 +206,37 @@ function App() {
         options.mimeType = 'audio/mp4';
       }
       
-      console.log('🎵 Using MIME type:', options.mimeType || 'default');
-      
       mediaRecorderRef.current = new MediaRecorder(stream, options);
       chunksRef.current = [];
       
       mediaRecorderRef.current.ondataavailable = (event) => {
-        console.log('📦 Audio chunk received, size:', event.data.size);
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
 
       mediaRecorderRef.current.onstop = () => {
-        console.log('🛑 Recording stopped, chunks:', chunksRef.current.length);
         const mimeType = options.mimeType || 'audio/webm';
         const blob = new Blob(chunksRef.current, { type: mimeType });
-        console.log('📊 Final audio blob size:', blob.size);
         
         if (blob.size === 0) {
-          alert('⚠️ Recording failed - no audio data captured. Please check microphone permissions and try again.');
+          alert('Recording failed - no audio data captured.');
           return;
         }
         
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
+        setRecordedDuration(recordingTime);
         stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorderRef.current.onerror = (event) => {
-        console.error('❌ MediaRecorder error:', event);
-        alert('Recording failed. Please try again.');
-      };
-
-      mediaRecorderRef.current.start(100); // Capture every 100ms for better mobile compatibility
+      mediaRecorderRef.current.start(100);
       setIsRecording(true);
       setRecordingTime(0);
       
-      // Start timer with 90-second limit
       timerRef.current = window.setInterval(() => {
         setRecordingTime(prev => {
           const newTime = prev + 1;
-          // Auto-stop at 90 seconds
           if (newTime >= MAX_RECORDING_TIME) {
             stopRecording();
             return MAX_RECORDING_TIME;
@@ -154,24 +245,16 @@ function App() {
         });
       }, 1000);
       
-      console.log('🔴 Recording started successfully');
-      
     } catch (error) {
-      console.error('❌ Error accessing microphone:', error);
-      
-      // More specific error messages
+      console.error('Recording failed:', error);
       if (error instanceof Error) {
         if (error.name === 'NotAllowedError') {
-          alert('🚫 Microphone access denied. Please allow microphone permissions and try again.');
+          alert('Microphone access denied. Please allow microphone permissions.');
         } else if (error.name === 'NotFoundError') {
-          alert('🎤 No microphone found. Please connect a microphone and try again.');
-        } else if (error.name === 'NotSupportedError') {
-          alert('📱 Audio recording not supported on this device/browser.');
+          alert('No microphone found. Please connect a microphone.');
         } else {
-          alert(`❌ Recording error: ${error.message}`);
+          alert(`Recording error: ${error.message}`);
         }
-      } else {
-        alert('❌ Unknown recording error. Please try again.');
       }
     }
   };
@@ -183,8 +266,6 @@ function App() {
       setIsRecording(false);
       if (timerRef.current) {
         clearInterval(timerRef.current);
-        // Save the recorded duration AFTER stopping the timer
-        setRecordedDuration(recordingTime);
       }
     }
   };
@@ -207,7 +288,6 @@ function App() {
     if (!audio || !audioUrl) return;
 
     const handleLoadedMetadata = () => {
-      console.log('Audio duration loaded:', audio.duration);
       if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
         setDuration(audio.duration);
       }
@@ -222,24 +302,13 @@ function App() {
       setCurrentTime(0);
     };
 
-    const handleLoadedData = () => {
-      // Another event that fires when audio data is loaded
-      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
-        setDuration(audio.duration);
-      }
-    };
-
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('loadeddata', handleLoadedData);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
-
-    // Force the audio to load
     audio.load();
 
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('loadeddata', handleLoadedData);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
     };
@@ -253,114 +322,77 @@ function App() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Clear recording and start over
+  // Clear recording
   const redoRecording = () => {
     setAudioBlob(null);
     setAudioUrl('');
     setIsPlaying(false);
     setDuration(0);
     setCurrentTime(0);
-    setUploadedUrl('');
+    setShareOption(null);
+    setGeneratedLink('');
     setRecordingTime(0);
     setRecordedDuration(0);
   };
 
-
-
-  // Function to post using Farcaster Mini App SDK
-  const postUsingMiniAppSDK = async (videoUrl: string) => {
-    try {
-      console.log('📱 Using Farcaster composeCast SDK...');
-      
-      await sdk.actions.composeCast({
-        text: `🎤 Voice cast via VoiceCaster`,
-        embeds: [videoUrl], // Use the direct video URL, not wrapper
-      });
-      
-      console.log('✅ Cast composed successfully via SDK!');
-      alert(`✅ Cast posted successfully!`);
-      
-      // Reset the recording after successful cast
-      redoRecording();
-      return true;
-      
-    } catch (error) {
-      console.error('❌ composeCast SDK failed:', error);
-      return false;
-    }
-  };
-
-  // Main function to post to Farcaster - tries SDK first, then falls back to intent URL
-  const postToFarcaster = async () => {
+  // Handle share options
+  const handleShareOption = async (option: 'link' | 'video') => {
     if (!audioBlob) return;
     
-    setIsUploading(true);
+    setShareOption(option);
     setIsProcessing(true);
     
     try {
-      // Show bouncing mic for 2 seconds
-      setTimeout(() => {
-        setIsProcessing(false);
-      }, 2000);
-      
-      console.log('🎬 Generating video...');
-      
-      // Calculate video duration - use recorded duration or audio duration
-      const videoDuration = Math.max(duration > 0 ? duration : recordedDuration, 1); // Minimum 1 second
-      
-      console.log('Video duration:', videoDuration);
-      console.log('Audio blob size:', audioBlob.size);
-      
-      let videoBlob: Blob;
-      
-      try {
-        // Generate simple video from audio - keep it minimal like before
-        videoBlob = await generateVideoFromAudio({
+      if (option === 'link') {
+        const shareUrl = await generateShareableLink(audioBlob);
+        setGeneratedLink(shareUrl.replace('https://', ''));
+        
+        // Auto-open Farcaster compose with the link
+        try {
+          await sdk.actions.composeCast({
+            text: `🎤 Voice message via VoiceCaster`,
+            embeds: [shareUrl],
+          });
+        } catch (error) {
+          console.error('Farcaster compose failed:', error);
+          // Fallback to manual copy
+        }
+      } else {
+        // Test simple video generation first
+        console.log('Testing PROVEN video generation method...');
+        const videoBlob = await generateSimpleVoiceVideo({
           audioBlob,
-          duration: videoDuration
+          duration: duration > 0 ? duration : recordedDuration,
+          userProfile: userProfile || undefined
         });
         
-        console.log('✅ Video generated! Size:', videoBlob.size);
-      } catch (error) {
-        console.error('❌ Video generation failed:', error);
-        alert('Video generation failed: ' + (error as Error).message);
-        return;
+        // Trigger download
+        const url = URL.createObjectURL(videoBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `voice-message-${Date.now()}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
-      
-      console.log('✅ Video generated!');
-      console.log('📤 Testing with Twitter for inline embedding...');
-      
-      // Instead of Supabase, let's test with a service that definitely embeds
-      // Upload to a temporary hosting service that Farcaster recognizes
-      
-      // For now, let's upload to Supabase but use direct video URL
-      const timestamp = Date.now();
-      const videoFileName = `voice-video-${timestamp}.mp4`;
-      const videoUrl = await uploadAudioFile(videoBlob, videoFileName);
-      
-      setUploadedUrl(videoUrl);
-      
-      console.log('🎉 Upload complete!');
-      console.log('🔗 Direct Video URL:', videoUrl);
-      
-      // Test: Let's try posting the direct video URL first
-      console.log('🚀 Posting direct video URL via SDK...');
-      const sdkSuccess = await postUsingMiniAppSDK(videoUrl);
-      
-      if (!sdkSuccess) {
-        alert(`❌ Failed to post cast.\n\nVideo URL: ${videoUrl}\n\nYou can manually copy this URL and create a cast.`);
-      }
-      
     } catch (error) {
-      console.error('❌ Process failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Failed: ${errorMessage}\n\nCheck the browser console for details.`);
+      console.error('Share failed:', error);
+      alert('Share failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
-      setIsUploading(false);
+      setIsProcessing(false);
     }
   };
 
-  // Loading screen - just bouncing mic on gradient
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`https://${generatedLink}`);
+    } catch (error) {
+      console.error('Copy failed:', error);
+    }
+  };
+
+  // Loading screen
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-indigo-600 flex items-center justify-center">
@@ -383,7 +415,6 @@ function App() {
           {!audioBlob ? (
             <div className="text-center">
               <div className="relative mb-6">
-                {/* Main mic circle */}
                 <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center transition-all duration-300 ${
                   isRecording 
                     ? 'bg-red-500/20 border-4 border-red-400 animate-pulse' 
@@ -411,115 +442,155 @@ function App() {
               <div className="flex justify-center">
                 <button
                   onClick={isRecording ? stopRecording : startRecording}
-                  className={isRecording ? 'recording-button-active' : 'recording-button text-purple-700'}
+                  className={`px-8 py-3 rounded-full font-semibold transition-all duration-200 flex items-center justify-center ${
+                    isRecording 
+                      ? 'bg-red-500 hover:bg-red-600 text-white' 
+                      : 'bg-white hover:bg-gray-100 text-purple-700'
+                  }`}
                 >
                   {isRecording ? (
                     <>
-                      <Square className="w-5 h-5" style={{ marginRight: '8px' }} />
+                      <Square className="w-5 h-5 mr-2" />
                       Stop Recording
                     </>
                   ) : (
                     <>
-                      <Mic className="w-5 h-5" style={{ marginRight: '8px' }} />
+                      <Mic className="w-5 h-5 mr-2" />
                       Start Recording
                     </>
                   )}
                 </button>
               </div>
             </div>
-          ) : (
-            /* Audio Preview Section */
-            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-white font-semibold">Preview</h3>
-                <button
-                  onClick={redoRecording}
-                  className="delete-button"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Audio Player */}
-              <div className="flex items-center space-x-4 mb-6">
-                <button
-                  onClick={togglePlayback}
-                  className="play-button rounded-full"
-                >
-                  {isPlaying ? (
-                    <Pause className="w-5 h-5 text-white" />
-                  ) : (
-                    <Play className="w-5 h-5 text-white ml-1" />
-                  )}
-                </button>
-
-                <div className="flex-1">
-                  <div className="flex justify-between time-display mb-1">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration > 0 ? duration : recordedDuration)}</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill"
-                      style={{ width: `${(duration > 0 ? duration : recordedDuration) > 0 ? (currentTime / (duration > 0 ? duration : recordedDuration)) * 100 : 0}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <Volume2 className="w-5 h-5 text-white/70" />
-              </div>
-
-              <audio
-                ref={audioRef}
-                src={audioUrl}
-                className="hidden"
+          ) : shareOption ? (
+            /* Share Options Result */
+            <div className="space-y-6">
+              <VoiceMessageCard 
+                isPlaying={isPlaying}
+                duration={duration}
+                currentTime={currentTime}
+                onPlayPause={togglePlayback}
+                userProfile={userProfile || undefined}
+                recordedDuration={recordedDuration}
               />
 
-              {/* Action Buttons */}
-              <div className="space-y-6">
-                {/* Cast Button */}
-                <button
-                  onClick={postToFarcaster}
-                  disabled={isUploading}
-                  className="action-button disabled:opacity-50 text-white w-full"
-                >
+              {shareOption === 'link' && (
+                <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
                   {isProcessing ? (
-                    <>
+                    <div className="text-center">
                       <BouncingMic />
-                      <span className="ml-2">Generating video...</span>
-                    </>
-                  ) : isUploading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Uploading...
-                    </>
+                      <p className="text-white mt-4">Creating shareable link...</p>
+                    </div>
                   ) : (
-                    <>
-                      <Send className="w-5 h-5 mr-2" />
-                      Cast to Farcaster
-                    </>
+                    <div>
+                      <h3 className="text-white font-semibold mb-4">✓ Shareable Link Ready</h3>
+                      <div className="bg-white/10 rounded-xl p-4 mb-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/90 font-mono text-sm truncate mr-2">{generatedLink}</span>
+                          <button
+                            onClick={copyLink}
+                            className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-all"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-white/70 text-sm mb-4">Copy this link and paste it in your Farcaster cast. It will show a beautiful audio preview!</p>
+                      <button
+                        onClick={() => window.open(`https://${generatedLink}`, '_blank')}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Preview Link
+                      </button>
+                    </div>
                   )}
-                </button>
-
-                {/* Redo Button */}
-                <button
-                  onClick={redoRecording}
-                  className="w-full bg-white/10 hover:bg-white/20 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center border border-white/20"
-                >
-                  <RotateCcw className="w-5 h-5 mr-2" />
-                  Record Again
-                </button>
-              </div>
-
-              {uploadedUrl && (
-                <div className="mt-4 p-3 bg-green-500/10 border border-green-400/20 rounded-xl">
-                  <div className="text-green-400 text-sm font-semibold mb-1">✓ Opening composer...</div>
-                  <div className="text-green-300 text-xs truncate">Cast should open automatically!</div>
                 </div>
               )}
+
+              {shareOption === 'video' && (
+                <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+                  {isProcessing ? (
+                    <div className="text-center">
+                      <BouncingMic />
+                      <p className="text-white mt-4">Generating video with waveforms...</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="text-white font-semibold mb-4">✓ Video Downloaded</h3>
+                      <p className="text-white/70 text-sm mb-4">Your voice message video has been downloaded! You can now upload it directly to Farcaster.</p>
+                      <button
+                        onClick={() => handleShareOption('video')}
+                        className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Again
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
+                onClick={() => setShareOption(null)}
+                className="w-full bg-white/10 hover:bg-white/20 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center border border-white/20"
+              >
+                ← Back to Options
+              </button>
+            </div>
+          ) : (
+            /* Audio Preview Section */
+            <div className="space-y-6">
+              <VoiceMessageCard 
+                isPlaying={isPlaying}
+                duration={duration}
+                currentTime={currentTime}
+                onPlayPause={togglePlayback}
+                userProfile={userProfile || undefined}
+                recordedDuration={recordedDuration}
+              />
+
+              <div className="space-y-4">
+                <h3 className="text-white font-semibold text-center">Choose how to share:</h3>
+                
+                <div className="space-y-6">
+                  <button
+                    onClick={() => handleShareOption('link')}
+                    className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
+                  >
+                    <Link className="w-6 h-6 mx-auto mb-2" />
+                    <div className="font-semibold text-sm">Share Link</div>
+                    <div className="text-xs text-white/70 mt-1">Copy & paste with preview</div>
+                  </button>
+
+                  <button
+                    onClick={() => handleShareOption('video')}
+                    className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
+                  >
+                    <Download className="w-6 h-6 mx-auto mb-2" />
+                    <div className="font-semibold text-sm">Download Video</div>
+                    <div className="text-xs text-white/70 mt-1">Upload manually</div>
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={redoRecording}
+                className="w-full bg-white/10 hover:bg-white/20 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center border border-white/20"
+              >
+                <RotateCcw className="w-5 h-5 mr-2" />
+                Record Again
+              </button>
             </div>
           )}
         </div>
+
+        {/* Hidden audio element */}
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          className="hidden"
+        />
 
         {/* Footer */}
         <div className="text-center">
