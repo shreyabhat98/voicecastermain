@@ -111,10 +111,14 @@ const VoiceMessageCard = ({
             <span className="text-lg font-mono">{formatTime(currentTime || 0)}/{formatTime(duration > 0 ? duration : recordedDuration)}</span>
           </div>
           <div className="flex items-center space-x-2 text-white/80">
-            <Volume2 className="w-4 h-4 opacity-70" />
             <Mic className="w-4 h-4" />
             <span className="text-sm font-medium">Voice</span>
           </div>
+        </div>
+        
+        {/* Speaker icon in top right corner */}
+        <div className="absolute top-4 right-4">
+          <Volume2 className="w-4 h-4 text-white/70" />
         </div>
       </div>
     </div>
@@ -597,16 +601,16 @@ function App() {
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">✓ Video Downloaded</h3>
+                      <h3 className="text-white font-semibold mb-4">✓ Video Saved to Photos!</h3>
                       <p className="text-white/70 text-sm mb-4">
-                        Video generated! Check Downloads folder if not in Gallery. In Farcaster mini app, it may open in external browser.
+                        Your voice message video has been saved directly to Photos! You can now share it anywhere or upload to Farcaster.
                       </p>
                       <button
                         onClick={() => handleShareOption('video')}
                         className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
                       >
                         <Download className="w-4 h-4 mr-2" />
-                        Download Again
+                        Save Another Copy
                       </button>
                     </div>
                   )}
@@ -643,7 +647,7 @@ function App() {
                   </div>
                 )}
                 
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <button
                     onClick={() => handleShareOption('link')}
                     className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
@@ -659,7 +663,7 @@ function App() {
                   >
                     <Download className="w-6 h-6 mx-auto mb-2" />
                     <div className="font-semibold text-sm">Download Video</div>
-                    <div className="text-xs text-white/70 mt-1">May not work in mini apps</div>
+                    <div className="text-xs text-white/70 mt-1">Save directly to Photos</div>
                   </button>
                 </div>
               </div>
