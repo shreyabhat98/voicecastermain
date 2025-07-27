@@ -168,9 +168,9 @@ export async function generateSimpleVoiceVideo({
         ctx.save();
         ctx.globalAlpha = 0.18; // subtle glow
         ctx.shadowColor = '#fff';
-        ctx.shadowBlur = 16;
+        ctx.shadowBlur = 25; // thicker glow
         ctx.beginPath();
-        ctx.arc(centerX, centerY, 44 * pulseScale, 0, Math.PI * 2); // slightly larger than image
+        ctx.arc(centerX, centerY, 46 * pulseScale, 0, Math.PI * 2); // larger radius for thicker halo
         ctx.fillStyle = '#fff';
         ctx.fill();
         ctx.restore();
