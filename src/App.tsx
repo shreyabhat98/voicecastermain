@@ -356,96 +356,50 @@ function App() {
     setRecordedDuration(0);
   };
 
-  // Download video function - MINI APP FRIENDLY (Enhanced for larger files)
+  // Download video function - WEB SHARE API ONLY (Direct to Photos)
   const downloadVideo = async (videoBlob: Blob) => {
     const timestamp = Date.now();
     const filename = `voice-message-${timestamp}.mp4`;
     
     console.log('📱 Video blob size:', videoBlob.size, 'bytes');
     
-    // Detect if we're in a mini app / embedded webview
-    const isMiniApp = window.location !== window.parent.location || 
-                     navigator.userAgent.includes('Farcaster') ||
-                     navigator.userAgent.includes('WebView') ||
-                     navigator.userAgent.includes('wv');
-    
-    console.log('🔍 Environment:', { isMiniApp, userAgent: navigator.userAgent });
-    
-    // Try Web Share API first (works better for larger files in mini apps)
-    if (navigator.share) {
-      try {
-        const file = new File([videoBlob], filename, { type: 'video/mp4' });
-        
-        console.log('📱 Attempting Web Share API with file size:', file.size);
-        
-        await navigator.share({
-          title: '🎤 Voice Message',
-          text: 'Voice message created with VoiceCaster',
-          files: [file]
-        });
-        
-        console.log('📱 Successfully shared via Web Share API');
-        return;
-      } catch (error) {
-        console.log('📱 Web Share API failed:', error);
-        // Continue to next method
-      }
+    // Check if Web Share API is available
+    if (!navigator.share) {
+      alert('❌ Web Share not supported\n\nYour browser doesn\'t support direct saving to Photos. Please use the "Share Link" option instead, or open VoiceCaster in Safari/Chrome.');
+      return;
     }
     
-    // For mini apps, try to open in external browser
-    if (isMiniApp && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      try {
-        // Create a shareable URL instead of trying to download directly
-        const url = URL.createObjectURL(videoBlob);
-        
-        // Try to open in external browser
-        const externalUrl = `https://voice-caster.app/download?video=${encodeURIComponent(url)}`;
-        
-        // For iOS: try to open in Safari
-        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-          window.open(`x-web-search://?${externalUrl}`, '_blank') || 
-          window.open(url, '_blank');
-        } else {
-          // For Android: try to open in default browser
-          window.open(url, '_blank');
-        }
-        
-        console.log('📱 Attempting to open in external browser');
-        
-        // Give user instructions
-        setTimeout(() => {
-          alert('📱 Opening in external browser...\n\nIf it doesn\'t open:\n• Copy this link and open in Safari/Chrome\n• Or try the Share Link option instead');
-        }, 1000);
-        
-        return;
-        
-      } catch (error) {
-        console.log('📱 External browser failed:', error);
-      }
-    }
-    
-    // Fallback: Regular download (may not work in mini apps)
-    const url = URL.createObjectURL(videoBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
-    
-    // Show context-specific message
-    setTimeout(() => {
-      if (isMiniApp) {
-        alert('📱 Download attempted!\n\nIf file not found:\n• Try the "Share Link" option instead\n• It creates a link you can share directly\n• Or open VoiceCaster in Safari/Chrome');
-      } else {
-        alert('📱 Downloaded to Downloads folder!\n\nTo save to Gallery: Downloads → tap video → Share → Save to Photos');
-      }
-    }, 500);
+    try {
+      const file = new File([videoBlob], filename, { type: 'video/mp4' });
+      
+      console.log('📱 Using Web Share API with file size:', file.size);
+      
+      await navigator.share({
+        title: '🎤 Voice Message',
+        text: 'Voice message created with VoiceCaster',
+        files: [file]
+      });
+      
+      console.log('📱 Successfully shared via Web Share API');
+      
+      // Show success message
+      setTimeout(() => {
+        alert('✅ Video shared successfully!\n\n📱 To save to Photos:\n• Choose "Save to Photos" from the share menu\n• Or share directly to other apps\n\nYour video is ready! 🎉');
+      }, 500);
+      
+         } catch (error) {
+       console.error('📱 Web Share API failed:', error);
+       
+       // If user cancelled, don't show error
+       if (error instanceof Error && error.name === 'AbortError') {
+         console.log('User cancelled share');
+         return;
+       }
+       
+       // For other errors, suggest alternative
+       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+       alert(`❌ Share failed: ${errorMessage}\n\n💡 Try these alternatives:\n• Use "Share Link" option instead\n• Open VoiceCaster in Safari/Chrome\n• Check if you have enough storage space`);
+     }
   };
 
   // Copy link function
@@ -633,16 +587,16 @@ function App() {
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">✓ Video Downloaded</h3>
+                      <h3 className="text-white font-semibold mb-4">✓ Ready to Save!</h3>
                       <p className="text-white/70 text-sm mb-4">
-                        Video generated! Check Downloads folder if not in Gallery. In Farcaster mini app, it may open in external browser.
+                        Video generated! Choose "Save to Photos" from the share menu to save directly to your gallery.
                       </p>
                       <button
                         onClick={() => handleShareOption('video')}
                         className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
                       >
                         <Download className="w-4 h-4 mr-2" />
-                        Download Again
+                        Save to Photos Again
                       </button>
                     </div>
                   )}
@@ -694,8 +648,8 @@ function App() {
                     className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
                   >
                     <Download className="w-6 h-6 mx-auto mb-2" />
-                    <div className="font-semibold text-sm">Download Video</div>
-                    <div className="text-xs text-white/70 mt-1">May not work in mini apps</div>
+                    <div className="font-semibold text-sm">Save to Photos</div>
+                    <div className="text-xs text-white/70 mt-1">Uses Web Share API (iOS/Android only)</div>
                   </button>
                 </div>
               </div>
