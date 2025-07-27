@@ -88,8 +88,8 @@ const VoiceMessageCard = ({
             </>
           )}
           
-          {/* Profile image - make it larger and remove the inset */}
-          <div className="absolute inset-2 rounded-full overflow-hidden border-2 border-white/50">
+          {/* Profile image - make it much larger to be visible */}
+          <div className="absolute inset-1 rounded-full overflow-hidden border-2 border-white/50">
             <img 
               src={profile.avatar} 
               alt={profile.name}
@@ -652,7 +652,7 @@ function App() {
                   </div>
                 )}
                 
-                <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-6">
                   <button
                     onClick={() => handleShareOption('link')}
                     className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
@@ -667,8 +667,8 @@ function App() {
                     className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
                   >
                     <Download className="w-6 h-6 mx-auto mb-2" />
-                    <div className="font-semibold text-sm mb-1">Download Video</div>
-                    <div className="text-xs text-white/70">Save directly to Photos</div>
+                    <div className="font-semibold text-sm">Download Video</div>
+                    <div className="text-xs text-white/70 mt-1">May not work in mini apps</div>
                   </button>
                 </div>
               </div>
