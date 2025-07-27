@@ -1,7 +1,6 @@
 import { sdk } from "@farcaster/frame-sdk";
 import { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Volume2, RotateCcw, Link, Download, Copy, ExternalLink } from 'lucide-react';
-// import { generateVideoWithWaveform } from './utils/videoGenerator';
 import { generateSimpleVoiceVideo } from './utils/testVideoGenerator';
 import { generateShareableLink } from './utils/linkGenerator';
 
@@ -335,53 +334,70 @@ function App() {
     setRecordedDuration(0);
   };
 
-  // Copy link function
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(`https://${generatedLink}`);
-    } catch (error) {
-      console.error('Copy failed:', error);
-    }
-  };
-
-  // Download video function
+  // Download video function - MOBILE GALLERY SAVE
   const downloadVideo = async (videoBlob: Blob) => {
     const timestamp = Date.now();
     
-    // Check if we can use the Web Share API (mobile)
-    if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    // For mobile, try to trigger native save dialog
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       try {
-        const file = new File([videoBlob], `voice-message-${timestamp}.mp4`, {
-          type: 'video/mp4'
-        });
+        // Method 1: Try Web Share API first
+        if (navigator.share) {
+          const file = new File([videoBlob], `voice-message-${timestamp}.mp4`, {
+            type: 'video/mp4'
+          });
+          
+          await navigator.share({
+            title: '🎤 Voice Message',
+            files: [file]
+          });
+          
+          console.log('📱 Shared via Web Share API');
+          return;
+        }
         
-        await navigator.share({
-          title: '🎤 Voice Message',
-          text: 'Voice message created with VoiceCaster',
-          files: [file]
-        });
+        // Method 2: Create blob URL and open in new tab (triggers save options)
+        const url = URL.createObjectURL(videoBlob);
         
-        console.log('📱 Shared via Web Share API');
+        // Open in new window/tab which gives save options on mobile
+        const newWindow = window.open(url, '_blank');
+        
+        if (newWindow) {
+          // Give time for the video to load, then show save instructions
+          setTimeout(() => {
+            newWindow.postMessage('showSaveInstructions', '*');
+          }, 2000);
+        } else {
+          // If popup blocked, fallback to direct link
+          const a = document.createElement('a');
+          a.href = url;
+          a.target = '_blank';
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+        
+        // Clean up URL after delay
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 10000);
+        
+        console.log('📱 Video opened in new tab - user can long-press to save');
         return;
+        
       } catch (error) {
-        console.log('📱 Web Share API failed, falling back to download:', error);
+        console.log('📱 Mobile save methods failed:', error);
       }
     }
     
-    // Fallback to regular download
+    // Desktop fallback - regular download
     const url = URL.createObjectURL(videoBlob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `voice-message-${timestamp}.mp4`;
     a.style.display = 'none';
     document.body.appendChild(a);
-    
-    // Mobile detection for better UX
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      console.log('📱 Mobile detected - opening video for manual save');
-      a.setAttribute('target', '_blank');
-    }
-    
     a.click();
     
     setTimeout(() => {
@@ -390,9 +406,14 @@ function App() {
     }, 100);
   };
 
-
-
-
+  // Copy link function
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`https://${generatedLink}`);
+    } catch (error) {
+      console.error('Copy failed:', error);
+    }
+  };
 
   // Handle share options
   const handleShareOption = async (option: 'link' | 'video') => {
@@ -417,16 +438,16 @@ function App() {
           // Fallback to manual copy
         }
       } else {
-        // Test simple video generation first
-        console.log('Testing PROVEN video generation method...');
+        // Generate video with audio
+        console.log('Generating video...');
         const videoBlob = await generateSimpleVoiceVideo({
           audioBlob,
           duration: duration > 0 ? duration : recordedDuration,
           userProfile: userProfile || undefined
         });
         
-        // Use the new mobile-friendly download function
-        downloadVideo(videoBlob);
+        // Download the video
+        await downloadVideo(videoBlob);
       }
     } catch (error) {
       console.error('Share failed:', error);
@@ -561,14 +582,19 @@ function App() {
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">✓ Video Downloaded</h3>
-                      <p className="text-white/70 text-sm mb-4">Your voice message video has been downloaded! You can now upload it directly to Farcaster.</p>
+                      <h3 className="text-white font-semibold mb-4">✓ Video Ready</h3>
+                      <p className="text-white/70 text-sm mb-4">
+                        {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) 
+                          ? "Video opened in new tab! Long-press the video and select 'Save to Photos' or 'Download' to save to gallery."
+                          : "Your voice message video has been downloaded! You can now upload it directly to Farcaster."
+                        }
+                      </p>
                       <button
                         onClick={() => handleShareOption('video')}
                         className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
                       >
                         <Download className="w-4 h-4 mr-2" />
-                        Download Again
+                        Generate Again
                       </button>
                     </div>
                   )}
