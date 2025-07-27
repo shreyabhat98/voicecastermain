@@ -334,64 +334,31 @@ function App() {
     setRecordedDuration(0);
   };
 
-  // Download video function - MOBILE GALLERY SAVE
+  // Download video function - SIMPLE with clear messaging
   const downloadVideo = async (videoBlob: Blob) => {
     const timestamp = Date.now();
     
-    // For mobile, try to trigger native save dialog
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    // Check if we can use the Web Share API (mobile)
+    if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       try {
-        // Method 1: Try Web Share API first
-        if (navigator.share) {
-          const file = new File([videoBlob], `voice-message-${timestamp}.mp4`, {
-            type: 'video/mp4'
-          });
-          
-          await navigator.share({
-            title: '🎤 Voice Message',
-            files: [file]
-          });
-          
-          console.log('📱 Shared via Web Share API');
-          return;
-        }
+        const file = new File([videoBlob], `voice-message-${timestamp}.mp4`, {
+          type: 'video/mp4'
+        });
         
-        // Method 2: Create blob URL and open in new tab (triggers save options)
-        const url = URL.createObjectURL(videoBlob);
+        await navigator.share({
+          title: '🎤 Voice Message',
+          text: 'Voice message created with VoiceCaster',
+          files: [file]
+        });
         
-        // Open in new window/tab which gives save options on mobile
-        const newWindow = window.open(url, '_blank');
-        
-        if (newWindow) {
-          // Give time for the video to load, then show save instructions
-          setTimeout(() => {
-            newWindow.postMessage('showSaveInstructions', '*');
-          }, 2000);
-        } else {
-          // If popup blocked, fallback to direct link
-          const a = document.createElement('a');
-          a.href = url;
-          a.target = '_blank';
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }
-        
-        // Clean up URL after delay
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-        }, 10000);
-        
-        console.log('📱 Video opened in new tab - user can long-press to save');
+        console.log('📱 Shared via Web Share API');
         return;
-        
       } catch (error) {
-        console.log('📱 Mobile save methods failed:', error);
+        console.log('📱 Web Share API failed, falling back to download:', error);
       }
     }
     
-    // Desktop fallback - regular download
+    // Regular download
     const url = URL.createObjectURL(videoBlob);
     const a = document.createElement('a');
     a.href = url;
@@ -404,6 +371,18 @@ function App() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 100);
+    
+    // Show helpful message about download location
+    setTimeout(() => {
+      const isMiniApp = window.location !== window.parent.location || navigator.userAgent.includes('Farcaster');
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMiniApp && isMobile) {
+        alert('📱 Video downloaded!\n\nIn Farcaster:\n• May open in external browser\n• Check Downloads folder\n• Or try the Share button above\n\nTo save to Photos: Downloads → tap video → Share → Save to Photos');
+      } else if (isMobile) {
+        alert('📱 Video downloaded to Downloads folder!\n\nTo save to Gallery/Photos:\n• Open Downloads\n• Tap the video\n• Share → Save to Photos');
+      }
+    }, 500);
   };
 
   // Copy link function
@@ -582,19 +561,16 @@ function App() {
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">✓ Video Ready</h3>
+                      <h3 className="text-white font-semibold mb-4">✓ Video Downloaded</h3>
                       <p className="text-white/70 text-sm mb-4">
-                        {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) 
-                          ? "Video opened in new tab! Long-press the video and select 'Save to Photos' or 'Download' to save to gallery."
-                          : "Your voice message video has been downloaded! You can now upload it directly to Farcaster."
-                        }
+                        Video generated! Check Downloads folder if not in Gallery. In Farcaster mini app, it may open in external browser.
                       </p>
                       <button
                         onClick={() => handleShareOption('video')}
                         className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
                       >
                         <Download className="w-4 h-4 mr-2" />
-                        Generate Again
+                        Download Again
                       </button>
                     </div>
                   )}
