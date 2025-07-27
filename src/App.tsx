@@ -69,6 +69,11 @@ const VoiceMessageCard = ({
 
   return (
     <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 relative overflow-hidden">
+      {/* Speaker icon in top right corner */}
+      <div className="absolute top-4 right-4">
+        <Volume2 className="w-5 h-5 text-white/70" />
+      </div>
+      
       <div className="text-white mb-4">
         <p className="text-lg font-medium">y'all ready for a story?</p>
       </div>
@@ -83,14 +88,15 @@ const VoiceMessageCard = ({
             </>
           )}
           
-          <div className="absolute inset-6 rounded-full overflow-hidden border-3 border-white/50">
+          {/* Profile image - make it larger and remove the inset */}
+          <div className="absolute inset-2 rounded-full overflow-hidden border-2 border-white/50">
             <img 
               src={profile.avatar} 
               alt={profile.name}
               className="w-full h-full object-cover"
               onError={(e) => {
                 console.log('Image failed to load:', profile.avatar);
-                e.currentTarget.src = "https://via.placeholder.com/64x64/8B5CF6/FFFFFF?text=🎤";
+                e.currentTarget.src = "https://via.placeholder.com/128x128/8B5CF6/FFFFFF?text=🎤";
               }}
             />
           </div>
@@ -112,10 +118,9 @@ const VoiceMessageCard = ({
         
         <div className="flex items-center justify-between mt-4 text-white">
           <div className="flex items-center space-x-2">
-            <span className="text-lg font-mono">{formatTime(currentTime || 0)}/{formatTime(duration > 0 ? duration : recordedDuration)}</span>
+            <span className="text-lg font-mono">{formatTime(currentTime)}/{formatTime(duration > 0 ? duration : recordedDuration)}</span>
           </div>
           <div className="flex items-center space-x-2 text-white/80">
-            <Volume2 className="w-4 h-4 opacity-70" />
             <Mic className="w-4 h-4" />
             <span className="text-sm font-medium">Voice</span>
           </div>
@@ -647,7 +652,7 @@ function App() {
                   </div>
                 )}
                 
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-4">
                   <button
                     onClick={() => handleShareOption('link')}
                     className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
@@ -662,8 +667,8 @@ function App() {
                     className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
                   >
                     <Download className="w-6 h-6 mx-auto mb-2" />
-                    <div className="font-semibold text-sm">Download Video</div>
-                    <div className="text-xs text-white/70 mt-1">May not work in mini apps</div>
+                    <div className="font-semibold text-sm mb-1">Download Video</div>
+                    <div className="text-xs text-white/70">Save directly to Photos</div>
                   </button>
                 </div>
               </div>
