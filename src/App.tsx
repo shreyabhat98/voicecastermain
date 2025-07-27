@@ -75,7 +75,7 @@ const VoiceMessageCard = ({
       </div>
       
       <div className="text-white mb-4">
-        <p className="text-lg font-medium">y'all ready for a story?</p>
+        <p className="text-lg font-medium"></p>
       </div>
       
       <div className="relative">
@@ -88,15 +88,14 @@ const VoiceMessageCard = ({
             </>
           )}
           
-          {/* Profile image - make it much larger to be visible */}
-          <div className="absolute inset-1 rounded-full overflow-hidden border-2 border-white/50">
+          <div className="absolute inset-6 rounded-full overflow-hidden border-3 border-white/50">
             <img 
               src={profile.avatar} 
               alt={profile.name}
               className="w-full h-full object-cover"
               onError={(e) => {
                 console.log('Image failed to load:', profile.avatar);
-                e.currentTarget.src = "https://via.placeholder.com/128x128/8B5CF6/FFFFFF?text=🎤";
+                e.currentTarget.src = "https://via.placeholder.com/64x64/8B5CF6/FFFFFF?text=🎤";
               }}
             />
           </div>
@@ -118,7 +117,7 @@ const VoiceMessageCard = ({
         
         <div className="flex items-center justify-between mt-4 text-white">
           <div className="flex items-center space-x-2">
-            <span className="text-lg font-mono">{formatTime(currentTime)}/{formatTime(duration > 0 ? duration : recordedDuration)}</span>
+            <span className="text-lg font-mono">{formatTime(currentTime || 0)}/{formatTime(duration > 0 ? duration : recordedDuration)}</span>
           </div>
           <div className="flex items-center space-x-2 text-white/80">
             <Mic className="w-4 h-4" />
@@ -343,7 +342,7 @@ function App() {
     setRecordedDuration(0);
   };
 
-  // Download video function - MINI APP FRIENDLY (restored from original)
+  // Download video function - MINI APP FRIENDLY
   const downloadVideo = async (videoBlob: Blob) => {
     const timestamp = Date.now();
     const filename = `voice-message-${timestamp}.mp4`;
@@ -667,8 +666,8 @@ function App() {
                     className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white p-4 rounded-xl transition-all text-center"
                   >
                     <Download className="w-6 h-6 mx-auto mb-2" />
-                    <div className="font-semibold text-sm">Download Video</div>
-                    <div className="text-xs text-white/70 mt-1">May not work in mini apps</div>
+                    <div className="font-semibold text-sm">Download Video </div>
+                    <div className="text-xs text-white/70 mt-1"> May not work in mini apps</div>
                   </button>
                 </div>
               </div>
