@@ -334,16 +334,55 @@ function App() {
     setRecordedDuration(0);
   };
 
-  // Download video function - SIMPLE with clear messaging
+  // Download video function - MINI APP FRIENDLY
   const downloadVideo = async (videoBlob: Blob) => {
     const timestamp = Date.now();
+    const filename = `voice-message-${timestamp}.mp4`;
     
-    // Check if we can use the Web Share API (mobile)
-    if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    // Detect if we're in a mini app / embedded webview
+    const isMiniApp = window.location !== window.parent.location || 
+                     navigator.userAgent.includes('Farcaster') ||
+                     navigator.userAgent.includes('WebView') ||
+                     navigator.userAgent.includes('wv');
+    
+    console.log('🔍 Environment:', { isMiniApp, userAgent: navigator.userAgent });
+    
+    // For mini apps, try to open in external browser first
+    if (isMiniApp && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       try {
-        const file = new File([videoBlob], `voice-message-${timestamp}.mp4`, {
-          type: 'video/mp4'
-        });
+        // Create a shareable URL instead of trying to download directly
+        const url = URL.createObjectURL(videoBlob);
+        
+        // Try to open in external browser
+        const externalUrl = `https://voice-caster.app/download?video=${encodeURIComponent(url)}`;
+        
+        // For iOS: try to open in Safari
+        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          window.open(`x-web-search://?${externalUrl}`, '_blank') || 
+          window.open(url, '_blank');
+        } else {
+          // For Android: try to open in default browser
+          window.open(url, '_blank');
+        }
+        
+        console.log('📱 Attempting to open in external browser');
+        
+        // Give user instructions
+        setTimeout(() => {
+          alert('📱 Opening in external browser...\n\nIf it doesn\'t open:\n• Copy this link and open in Safari/Chrome\n• Or try the Share Link option instead');
+        }, 1000);
+        
+        return;
+        
+      } catch (error) {
+        console.log('📱 External browser failed:', error);
+      }
+    }
+    
+    // Try Web Share API first (works better in mini apps)
+    if (navigator.share) {
+      try {
+        const file = new File([videoBlob], filename, { type: 'video/mp4' });
         
         await navigator.share({
           title: '🎤 Voice Message',
@@ -354,15 +393,15 @@ function App() {
         console.log('📱 Shared via Web Share API');
         return;
       } catch (error) {
-        console.log('📱 Web Share API failed, falling back to download:', error);
+        console.log('📱 Web Share API failed:', error);
       }
     }
     
-    // Regular download
+    // Fallback: Regular download (may not work in mini apps)
     const url = URL.createObjectURL(videoBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `voice-message-${timestamp}.mp4`;
+    a.download = filename;
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
@@ -372,15 +411,12 @@ function App() {
       URL.revokeObjectURL(url);
     }, 100);
     
-    // Show helpful message about download location
+    // Show context-specific message
     setTimeout(() => {
-      const isMiniApp = window.location !== window.parent.location || navigator.userAgent.includes('Farcaster');
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      if (isMiniApp && isMobile) {
-        alert('📱 Video downloaded!\n\nIn Farcaster:\n• May open in external browser\n• Check Downloads folder\n• Or try the Share button above\n\nTo save to Photos: Downloads → tap video → Share → Save to Photos');
-      } else if (isMobile) {
-        alert('📱 Video downloaded to Downloads folder!\n\nTo save to Gallery/Photos:\n• Open Downloads\n• Tap the video\n• Share → Save to Photos');
+      if (isMiniApp) {
+        alert('📱 Download attempted!\n\nIf file not found:\n• Try the "Share Link" option instead\n• It creates a link you can share directly\n• Or open VoiceCaster in Safari/Chrome');
+      } else {
+        alert('📱 Downloaded to Downloads folder!\n\nTo save to Gallery: Downloads → tap video → Share → Save to Photos');
       }
     }, 500);
   };
@@ -599,6 +635,14 @@ function App() {
               <div className="space-y-4">
                 <h3 className="text-white font-semibold text-center">Choose how to share:</h3>
                 
+                {/* Detect mini app and show recommendation */}
+                {(window.location !== window.parent.location || navigator.userAgent.includes('Farcaster')) && (
+                  <div className="bg-blue-500/10 border border-blue-400/20 rounded-xl p-3 mb-4">
+                    <div className="text-blue-400 text-sm font-semibold mb-1">📱 Mini App Detected</div>
+                    <div className="text-blue-300 text-xs">Recommended: Use "Share Link" for best experience in Farcaster mini apps</div>
+                  </div>
+                )}
+                
                 <div className="space-y-6">
                   <button
                     onClick={() => handleShareOption('link')}
@@ -606,7 +650,7 @@ function App() {
                   >
                     <Link className="w-6 h-6 mx-auto mb-2" />
                     <div className="font-semibold text-sm">Share Link</div>
-                    <div className="text-xs text-white/70 mt-1">Copy & paste with preview</div>
+                    <div className="text-xs text-white/70 mt-1">Copy & paste with preview (Recommended for mini apps)</div>
                   </button>
 
                   <button
@@ -615,7 +659,7 @@ function App() {
                   >
                     <Download className="w-6 h-6 mx-auto mb-2" />
                     <div className="font-semibold text-sm">Download Video</div>
-                    <div className="text-xs text-white/70 mt-1">Upload manually</div>
+                    <div className="text-xs text-white/70 mt-1">May not work in mini apps</div>
                   </button>
                 </div>
               </div>
