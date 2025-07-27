@@ -200,12 +200,16 @@ export async function generateSimpleVoiceVideo({
       canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
       audioDestination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
       
-      // Use simple mime type
-      const mimeType = MediaRecorder.isTypeSupported('video/webm')
+      // Use MP4 for better mobile compatibility
+      const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')
+        ? 'video/mp4;codecs=h264,aac'
+        : MediaRecorder.isTypeSupported('video/mp4')
+        ? 'video/mp4'
+        : MediaRecorder.isTypeSupported('video/webm')
         ? 'video/webm'
-        : 'video/mp4';
+        : 'video/mp4'; // Force MP4 as fallback
       
-      console.log('🎵 Using mime type:', mimeType);
+      console.log('🎵 Using mime type for mobile:', mimeType);
       
       const mediaRecorder = new MediaRecorder(combinedStream, { mimeType });
       const chunks: Blob[] = [];

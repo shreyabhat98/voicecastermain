@@ -335,6 +335,65 @@ function App() {
     setRecordedDuration(0);
   };
 
+  // Copy link function
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`https://${generatedLink}`);
+    } catch (error) {
+      console.error('Copy failed:', error);
+    }
+  };
+
+  // Download video function
+  const downloadVideo = async (videoBlob: Blob) => {
+    const timestamp = Date.now();
+    
+    // Check if we can use the Web Share API (mobile)
+    if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      try {
+        const file = new File([videoBlob], `voice-message-${timestamp}.mp4`, {
+          type: 'video/mp4'
+        });
+        
+        await navigator.share({
+          title: '🎤 Voice Message',
+          text: 'Voice message created with VoiceCaster',
+          files: [file]
+        });
+        
+        console.log('📱 Shared via Web Share API');
+        return;
+      } catch (error) {
+        console.log('📱 Web Share API failed, falling back to download:', error);
+      }
+    }
+    
+    // Fallback to regular download
+    const url = URL.createObjectURL(videoBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `voice-message-${timestamp}.mp4`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    
+    // Mobile detection for better UX
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      console.log('📱 Mobile detected - opening video for manual save');
+      a.setAttribute('target', '_blank');
+    }
+    
+    a.click();
+    
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+
+
+
+
   // Handle share options
   const handleShareOption = async (option: 'link' | 'video') => {
     if (!audioBlob) return;
@@ -366,29 +425,14 @@ function App() {
           userProfile: userProfile || undefined
         });
         
-        // Trigger download
-        const url = URL.createObjectURL(videoBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `voice-message-${Date.now()}.webm`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Use the new mobile-friendly download function
+        downloadVideo(videoBlob);
       }
     } catch (error) {
       console.error('Share failed:', error);
       alert('Share failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(`https://${generatedLink}`);
-    } catch (error) {
-      console.error('Copy failed:', error);
     }
   };
 
