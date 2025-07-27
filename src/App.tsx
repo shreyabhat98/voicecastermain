@@ -397,7 +397,19 @@ function App() {
     console.log('📱 INSTANT Web Share API call - blob size:', generatedVideoBlob.size);
     
     if (!navigator.share) {
-      alert('❌ Web Share not supported in this browser.\n\nPlease use Safari or Chrome for direct saving to Photos.');
+      // Fallback: Create download link for desktop/browsers without Web Share
+      console.log('📱 Web Share not supported, using download fallback');
+      const downloadUrl = URL.createObjectURL(generatedVideoBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = downloadUrl;
+      downloadLink.download = filename;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(downloadUrl);
+      
+      alert('✅ Video downloaded! Check your Downloads folder.\n\n💡 For mobile: Use Safari/Chrome for direct saving to Photos.');
       return;
     }
 
@@ -422,8 +434,20 @@ function App() {
         return;
       }
 
+      // Fallback: Create download link when Web Share fails
+      console.log('📱 Web Share failed, using download fallback');
+      const downloadUrl = URL.createObjectURL(generatedVideoBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = downloadUrl;
+      downloadLink.download = filename;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(downloadUrl);
+      
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`❌ Share failed: ${errorMessage}\n\n💡 Try:\n• Make sure you have storage space\n• Try in Safari/Chrome\n• Check file size: ${sizeMB.toFixed(1)}MB`);
+      alert(`✅ Video downloaded as fallback!\n\n💡 Web Share failed: ${errorMessage}\n• Check your Downloads folder\n• File size: ${sizeMB.toFixed(1)}MB\n• For mobile: Try Safari/Chrome`);
     }
   };
 
