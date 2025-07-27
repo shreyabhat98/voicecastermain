@@ -211,7 +211,7 @@ export async function generateSimpleVoiceVideo({
         // Bottom section - time and controls
         const bottomY = canvas.height - 40;
         
-        // Time display (left side)
+        /* Time display (left side)
         const currentTime = Math.floor(timeProgress);
         const totalTime = Math.floor(actualDuration);
         const timeText = `${Math.floor(currentTime/60)}:${(currentTime%60).toString().padStart(2,'0')}/${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
@@ -220,7 +220,7 @@ export async function generateSimpleVoiceVideo({
         ctx.font = '18px monospace'; // text-lg font-mono
         ctx.textAlign = 'left';
         ctx.textBaseline = 'bottom';
-        ctx.fillText(timeText, 24, bottomY);
+        ctx.fillText(timeText, 24, bottomY); */
         
         // Voice label (right side)
         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -309,5 +309,113 @@ export async function generateSimpleVoiceVideo({
       console.error('❌ VoiceMessageCard video generation failed:', error);
       reject(error);
     }
+  });
+}
+
+// Generate a PNG preview of the Voice Card UI (for OG image)
+export async function generateVoiceCardPreview({
+  userProfile
+}: {
+  userProfile?: {
+    name?: string;
+    username?: string;
+    avatar?: string;
+  };
+}): Promise<Blob> {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d')!;
+  canvas.width = 400;
+  canvas.height = 280;
+
+  // Load profile image if available
+  let profileImage: HTMLImageElement | null = null;
+  if (userProfile?.avatar) {
+    try {
+      profileImage = new Image();
+      profileImage.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => {
+        profileImage!.onload = resolve;
+        profileImage!.onerror = reject;
+        profileImage!.src = userProfile.avatar!;
+      });
+    } catch (error) {
+      profileImage = null;
+    }
+  }
+
+  // Draw frame (static, no pulse)
+  // Gradient background
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, '#c084fc'); // purple-400
+  gradient.addColorStop(1, '#9333ea'); // purple-600
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Rounded corners
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, canvas.width, canvas.height, 16);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Center area for profile/icon
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2 - 10;
+
+  // Glowing halo (static)
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.shadowColor = '#fff';
+  ctx.shadowBlur = 25;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 46, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.restore();
+
+  // Draw profile image or mic icon
+  if (profileImage) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 40, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(
+      profileImage,
+      centerX - 40,
+      centerY - 40,
+      80,
+      80
+    );
+    ctx.restore();
+    // Border
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 40, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.fillStyle = 'white';
+    ctx.font = '48px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎤', 0, 0);
+    ctx.restore();
+  }
+
+  // Voice label (right side)
+  const bottomY = canvas.height - 40;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.font = '14px Arial';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('VoiceCaster', canvas.width - 24, bottomY);
+
+  // Return PNG blob
+  return await new Promise<Blob>((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(blob!);
+    }, 'image/png');
   });
 }

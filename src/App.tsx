@@ -1,7 +1,7 @@
 import { sdk } from "@farcaster/frame-sdk";
 import { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Volume2, RotateCcw, Link, Download, Copy, ExternalLink } from 'lucide-react';
-import { generateSimpleVoiceVideo } from './utils/testVideoGenerator';
+import { generateSimpleVoiceVideo, generateVoiceCardPreview } from './utils/testVideoGenerator';
 import { generateShareableLink } from './utils/linkGenerator';
 
 // Bouncing Mic SVG Component
@@ -162,6 +162,7 @@ function App() {
   const [generatedLink, setGeneratedLink] = useState('');
   const [userProfile, setUserProfile] = useState<{name?: string; username?: string; avatar?: string} | null>(null);
   const [generatedVideoBlob, setGeneratedVideoBlob] = useState<Blob | null>(null); // NEW: Store generated video
+  const [farcasterSuccess, setFarcasterSuccess] = useState(false);
   
   const MAX_RECORDING_TIME = 90;
   
@@ -379,6 +380,7 @@ function App() {
     setRecordingTime(0);
     setRecordedDuration(0);
     setGeneratedVideoBlob(null); // Clear generated video
+    setFarcasterSuccess(false);
   };
 
   // Web Share API function - INSTANT (no async delays)
@@ -443,7 +445,15 @@ function App() {
     
     try {
       if (option === 'link') {
-        const shareUrl = await generateShareableLink(audioBlob);
+        // Generate preview image
+        console.log('🖼️ Generating preview image...');
+        const previewImageBlob = await generateVoiceCardPreview({
+          userProfile: userProfile || undefined
+        });
+        console.log('✅ Preview image generated, size:', previewImageBlob.size);
+        
+        // Generate shareable link with preview
+        const shareUrl = await generateShareableLink(audioBlob, previewImageBlob);
         setGeneratedLink(shareUrl.replace('https://', ''));
         
         // Auto-open Farcaster compose with the link
@@ -452,8 +462,11 @@ function App() {
             text: `🎤 Voice message via VoiceCaster`,
             embeds: [shareUrl],
           });
+          setFarcasterSuccess(true);
+          console.log('✅ Farcaster compose opened successfully');
         } catch (error) {
           console.error('Farcaster compose failed:', error);
+          setFarcasterSuccess(false);
           // Fallback to manual copy
         }
       } else {
@@ -578,9 +591,39 @@ function App() {
                       <BouncingMic />
                       <p className="text-white mt-4">Creating shareable link...</p>
                     </div>
+                  ) : farcasterSuccess ? (
+                    <div>
+                      <h3 className="text-white font-semibold mb-4">✅ Farcaster Compose Opened!</h3>
+                      <div className="bg-green-500/10 border border-green-400/20 rounded-xl p-4 mb-4">
+                        <div className="text-green-400 text-sm font-semibold mb-1">🎉 Success!</div>
+                        <div className="text-green-300 text-xs">Your voice message link has been added to Farcaster compose. Just hit send!</div>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-4 mb-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/90 font-mono text-sm truncate mr-2">{generatedLink}</span>
+                          <button
+                            onClick={copyLink}
+                            className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-all"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => window.open(`https://${generatedLink}`, '_blank')}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Preview Link
+                      </button>
+                    </div>
                   ) : (
                     <div>
                       <h3 className="text-white font-semibold mb-4">✓ Shareable Link Ready</h3>
+                      <div className="bg-yellow-500/10 border border-yellow-400/20 rounded-xl p-4 mb-4">
+                        <div className="text-yellow-400 text-sm font-semibold mb-1">📱 Manual Share Required</div>
+                        <div className="text-yellow-300 text-xs">Farcaster compose didn't open automatically. Copy the link below and paste it in Farcaster.</div>
+                      </div>
                       <div className="bg-white/10 rounded-xl p-4 mb-4">
                         <div className="flex items-center justify-between">
                           <span className="text-white/90 font-mono text-sm truncate mr-2">{generatedLink}</span>
