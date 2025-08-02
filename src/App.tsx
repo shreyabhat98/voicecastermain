@@ -602,12 +602,12 @@ function App() {
                       <div className="bg-white/10 rounded-xl p-4 mb-4">
                         <div className="flex items-center justify-between">
                           <span className="text-white/90 font-mono text-sm truncate mr-2">{generatedLink}</span>
-                          <button
+                          <div
                             onClick={copyLink}
-                            className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 p-2 rounded-lg transition-all"
+                            className="text-white/70 hover:text-white p-2 transition-all duration-200 cursor-pointer"
                           >
                             <Copy className="w-4 h-4" />
-                          </button>
+                          </div>
                         </div>
                       </div>
                       <button
@@ -628,12 +628,12 @@ function App() {
                       <div className="bg-white/10 rounded-xl p-4 mb-4">
                         <div className="flex items-center justify-between">
                           <span className="text-white/90 font-mono text-sm truncate mr-2">{generatedLink}</span>
-                          <button
+                          <div
                             onClick={copyLink}
-                            className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 p-2 rounded-lg transition-all"
+                            className="text-white/70 hover:text-white p-2 transition-all duration-200 cursor-pointer"
                           >
                             <Copy className="w-4 h-4" />
-                          </button>
+                          </div>
                         </div>
                       </div>
                        {/* <p className="text-white/70 text-sm mb-4">Copy this link and paste it in your Farcaster cast. It will show a beautiful audio preview!</p> */}

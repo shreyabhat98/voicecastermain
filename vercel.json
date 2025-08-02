@@ -8,6 +8,18 @@
     {
       "source": "/api/video/(.*)",
       "destination": "/api/video/[videoId]"
+    },
+    {
+      "source": "/api/audio/(.*)",
+      "destination": "/api/audio/[audioId]"
+    },
+    {
+      "source": "/api/audio/preview/(.*)",
+      "destination": "/api/audio/preview/[audioId]"
+    },
+    {
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
     }
   ]
 }
