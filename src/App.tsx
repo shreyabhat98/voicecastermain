@@ -87,7 +87,7 @@ const VoiceMessageCard = ({
               <img
                 src={userProfile.avatar}
                 alt={userProfile.name || 'User Profile'}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-full"
                 onError={() => setImgError(true)}
               />
             ) : (
