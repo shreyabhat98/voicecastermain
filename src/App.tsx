@@ -610,13 +610,13 @@ function App() {
                           </div>
                         </div>
                       </div>
-                      <button
+                      {/* <button
                         onClick={() => window.open(`https://${generatedLink}`, '_blank')}
                         className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center mb-4"
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Preview Link
-                      </button>
+                      </button> */}
                     </div>
                   ) : (
                     <div>

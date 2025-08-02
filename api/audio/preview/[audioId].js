@@ -1,3 +1,5 @@
+// api/audio/preview/[audioId].js - UPDATED to redirect users to mini app
+
 export default function handler(req, res) {
   const { audioId } = req.query;
   const { audio } = req.query; // Direct audio URL from Supabase
@@ -12,7 +14,16 @@ export default function handler(req, res) {
   // Use preview image if available, otherwise fallback to placeholder
   const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=Voice+Message';
   
-  const html = `
+  // 🎯 REDIRECT real users to mini app
+  const miniAppUrl = `https://${req.headers.host}/play/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}`;
+  
+  // Detect if this is a social media crawler vs real user
+  const userAgent = req.headers['user-agent'] || '';
+  const isCrawler = /bot|crawler|spider|crawling|facebookexternalhit|twitterbot|linkedinbot|farcaster/i.test(userAgent);
+  
+  if (isCrawler) {
+    // 🎯 FOR CRAWLERS: Serve the beautiful preview HTML with meta tags
+    const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,7 +31,7 @@ export default function handler(req, res) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Required Open Graph tags for audio embedding -->
-    <meta property="og:title" content="Voice Message via VoiceCaster" />
+    <meta property="og:title" content="🎤 Voice Message via VoiceCaster" />
     <meta property="og:type" content="website" />
     <meta property="og:description" content="Listen to this voice message created with VoiceCaster" />
     <meta property="og:url" content="${wrapperUrl}" />
@@ -39,7 +50,7 @@ export default function handler(req, res) {
     
     <!-- Twitter Card tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Voice Message via VoiceCaster" />
+    <meta name="twitter:title" content="🎤 Voice Message via VoiceCaster" />
     <meta name="twitter:description" content="Listen to this voice message created with VoiceCaster" />
     <meta name="twitter:image" content="${previewImageUrl}" />
     
@@ -47,11 +58,11 @@ export default function handler(req, res) {
     <meta property="fc:frame" content="vNext" />
     <meta property="fc:frame:image" content="${previewImageUrl}" />
     <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-    <meta property="fc:frame:button:1" content="Play Audio" />
+    <meta property="fc:frame:button:1" content="🔊 Play Audio" />
     <meta property="fc:frame:button:1:action" content="link" />
-    <meta property="fc:frame:button:1:target" content="${audio}" />
+    <meta property="fc:frame:button:1:target" content="${miniAppUrl}" />
     
-    <title>Voice Message via VoiceCaster</title>
+    <title>🎤 Voice Message via VoiceCaster</title>
     
     <style>
       body {
@@ -158,11 +169,11 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="header-text">Voice Message</div>
+        <div class="header-text">🎤 Voice Message</div>
         
         <div class="audio-player">
             <div class="profile-circle">
-                Voice
+                🎤
             </div>
             
             <audio controls preload="metadata">
@@ -173,12 +184,12 @@ export default function handler(req, res) {
             </audio>
             
             <div class="audio-info">
-                <span></span>
+                <span>🔊</span>
                 <span>Voice</span>
             </div>
         </div>
         
-        <a href="/" class="cta-button">Create your own voice message</a>
+        <a href="${miniAppUrl}" class="cta-button">Open in VoiceCaster</a>
     </div>
     
     <script>
@@ -215,7 +226,12 @@ export default function handler(req, res) {
 </body>
 </html>`;
 
-  res.setHeader('Content-Type', 'text/html');
-  res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
-  res.status(200).send(html);
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.status(200).send(html);
+    
+  } else {
+    // 🎯 FOR REAL USERS: Redirect to mini app
+    res.redirect(302, miniAppUrl);
+  }
 }
