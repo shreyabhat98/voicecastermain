@@ -10,7 +10,7 @@ export default function handler(req, res) {
   const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}`;
   
   // Use preview image if available, otherwise fallback to placeholder
-  const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=🎤+Voice+Message';
+  const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=Voice+Message';
   
   const html = `
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ export default function handler(req, res) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Required Open Graph tags for audio embedding -->
-    <meta property="og:title" content="🎤 Voice Message via VoiceCaster" />
+    <meta property="og:title" content="Voice Message via VoiceCaster" />
     <meta property="og:type" content="website" />
     <meta property="og:description" content="Listen to this voice message created with VoiceCaster" />
     <meta property="og:url" content="${wrapperUrl}" />
@@ -39,7 +39,7 @@ export default function handler(req, res) {
     
     <!-- Twitter Card tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="🎤 Voice Message via VoiceCaster" />
+    <meta name="twitter:title" content="Voice Message via VoiceCaster" />
     <meta name="twitter:description" content="Listen to this voice message created with VoiceCaster" />
     <meta name="twitter:image" content="${previewImageUrl}" />
     
@@ -47,11 +47,11 @@ export default function handler(req, res) {
     <meta property="fc:frame" content="vNext" />
     <meta property="fc:frame:image" content="${previewImageUrl}" />
     <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-    <meta property="fc:frame:button:1" content="🔊 Play Audio" />
+    <meta property="fc:frame:button:1" content="Play Audio" />
     <meta property="fc:frame:button:1:action" content="link" />
     <meta property="fc:frame:button:1:target" content="${audio}" />
     
-    <title>🎤 Voice Message via VoiceCaster</title>
+    <title>Voice Message via VoiceCaster</title>
     
     <style>
       body {
@@ -158,11 +158,11 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="header-text">🎤 Voice Message</div>
+        <div class="header-text">Voice Message</div>
         
         <div class="audio-player">
             <div class="profile-circle">
-                🎤
+                Voice
             </div>
             
             <audio controls preload="metadata">
@@ -173,7 +173,7 @@ export default function handler(req, res) {
             </audio>
             
             <div class="audio-info">
-                <span>🔊</span>
+                <span></span>
                 <span>Voice</span>
             </div>
         </div>

@@ -134,7 +134,7 @@ export async function generateVideoWithWaveform({
             ctx.font = '40px system-ui';
             ctx.textAlign = 'center';
             ctx.fillStyle = 'white';
-            ctx.fillText('🎤', centerX, centerY + 15);
+            ctx.fillText('Voice', centerX, centerY + 15);
           }
           
           ctx.restore();
@@ -168,7 +168,7 @@ export async function generateVideoWithWaveform({
           // Draw speaker and voice on TOP RIGHT
           ctx.textAlign = 'right';
           ctx.font = '18px system-ui';
-          ctx.fillText('🔊 🎤 Voice', canvas.width - 80, 80);
+          ctx.fillText('Voice', canvas.width - 80, 80);
           
           // Continue animation while recording
           if (mediaRecorder.state === 'recording') {

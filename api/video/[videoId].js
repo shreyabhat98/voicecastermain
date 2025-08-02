@@ -16,7 +16,7 @@ export default function handler(req, res) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Required Open Graph tags for video embedding -->
-    <meta property="og:title" content="🎤 Voice Cast via VoiceCaster" />
+    <meta property="og:title" content="Voice Cast via VoiceCaster" />
     <meta property="og:type" content="video.other" />
     <meta property="og:description" content="Listen to this voice recording created with VoiceCaster" />
     <meta property="og:url" content="${wrapperUrl}" />
@@ -31,20 +31,20 @@ export default function handler(req, res) {
     <meta property="og:video:height" content="360" />
     
     <!-- Fallback image (you can replace with your own thumbnail) -->
-    <meta property="og:image" content="https://via.placeholder.com/640x360/8B5CF6/FFFFFF?text=🎤+Voice+Cast" />
+    <meta property="og:image" content="https://via.placeholder.com/640x360/8B5CF6/FFFFFF?text=Voice+Cast" />
     <meta property="og:image:width" content="640" />
     <meta property="og:image:height" content="360" />
     
     <!-- Twitter Card tags -->
     <meta name="twitter:card" content="player" />
-    <meta name="twitter:title" content="🎤 Voice Cast via VoiceCaster" />
+    <meta name="twitter:title" content="Voice Cast via VoiceCaster" />
     <meta name="twitter:description" content="Listen to this voice recording created with VoiceCaster" />
-    <meta name="twitter:image" content="https://via.placeholder.com/640x360/8B5CF6/FFFFFF?text=🎤+Voice+Cast" />
+    <meta name="twitter:image" content="https://via.placeholder.com/640x360/8B5CF6/FFFFFF?text=Voice+Cast" />
     <meta name="twitter:player" content="${video}" />
     <meta name="twitter:player:width" content="640" />
     <meta name="twitter:player:height" content="360" />
     
-    <title>🎤 Voice Cast via VoiceCaster</title>
+    <title>Voice Cast via VoiceCaster</title>
     
     <style>
       body {
@@ -118,7 +118,7 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="container">
-        <h1>🎤 Voice Cast</h1>
+        <h1>Voice Cast</h1>
         <p>Created with VoiceCaster</p>
         <video controls preload="metadata">
             <source src="${video}" type="video/webm">

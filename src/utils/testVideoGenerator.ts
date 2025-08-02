@@ -204,7 +204,7 @@ export async function generateSimpleVoiceVideo({
           ctx.font = '48px Arial';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText('🎤', 0, 0);
+          ctx.fillText('Voice', 0, 0);
           ctx.restore();
         }
         
@@ -306,7 +306,7 @@ export async function generateSimpleVoiceVideo({
       }, actualDuration * 1000);
       
     } catch (error) {
-      console.error('❌ VoiceMessageCard video generation failed:', error);
+      console.error('VoiceMessageCard video generation failed:', error);
       reject(error);
     }
   });
@@ -400,7 +400,7 @@ export async function generateVoiceCardPreview({
     ctx.font = '48px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🎤', 0, 0);
+            ctx.fillText('Voice', 0, 0);
     ctx.restore();
   }
 
@@ -410,7 +410,7 @@ export async function generateVoiceCardPreview({
   ctx.font = '14px Arial';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'bottom';
-  ctx.fillText('VoiceCaster', canvas.width - 24, bottomY);
+  ctx.fillText('Voice', canvas.width - 24, bottomY);
 
   // Return PNG blob
   return await new Promise<Blob>((resolve) => {

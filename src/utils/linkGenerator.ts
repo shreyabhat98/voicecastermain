@@ -1,3 +1,5 @@
+// src/utils/linkGenerator.ts - COMPLETE UPDATED VERSION
+
 import { uploadAudioFile } from './supabase';
 
 // Simple URL shortener using TinyURL API (free, no key required)
@@ -16,14 +18,14 @@ export const shortenUrl = async (longUrl: string): Promise<string> => {
     
     // Validate the response
     if (shortUrl.startsWith('http')) {
-      console.log('✅ URL shortened:', shortUrl);
+      console.log('URL shortened:', shortUrl);
       return shortUrl;
     } else {
       throw new Error('Invalid response from TinyURL');
     }
     
   } catch (error) {
-    console.error('❌ URL shortening failed:', error);
+    console.error('URL shortening failed:', error);
     // Fallback to original URL if shortening fails
     return longUrl;
   }
@@ -49,31 +51,32 @@ export const shortenUrlAlternative = async (longUrl: string): Promise<string> =>
     const shortUrl = await response.text();
     
     if (shortUrl.startsWith('http')) {
-      console.log('✅ URL shortened with is.gd:', shortUrl);
+      console.log('URL shortened with is.gd:', shortUrl);
       return shortUrl;
     } else {
       throw new Error('Invalid response from is.gd');
     }
     
   } catch (error) {
-    console.error('❌ is.gd shortening failed:', error);
+    console.error('is.gd shortening failed:', error);
     return longUrl;
   }
 };
 
+// 🎯 MAIN CHANGE: Generate mini app playback links instead of direct audio
 export const generateShareableLink = async (
   audioBlob: Blob, 
   previewImageBlob?: Blob
 ): Promise<string> => {
   try {
-    console.log('📤 Uploading audio for link generation...');
+    console.log('Uploading audio for mini app link generation...');
     
     // Upload audio to Supabase
     const timestamp = Date.now();
     const audioFileName = `voice-${timestamp}.wav`;
     const audioUrl = await uploadAudioFile(audioBlob, audioFileName);
     
-    console.log('✅ Audio uploaded:', audioUrl);
+    console.log('Audio uploaded:', audioUrl);
     
     // Upload preview image if provided
     let previewImageUrl = '';
@@ -81,40 +84,40 @@ export const generateShareableLink = async (
       try {
         const previewFileName = `preview-${timestamp}.png`;
         previewImageUrl = await uploadAudioFile(previewImageBlob, previewFileName);
-        console.log('✅ Preview image uploaded:', previewImageUrl);
+        console.log('Preview image uploaded:', previewImageUrl);
       } catch (error) {
-        console.log('❌ Preview image upload failed, continuing without preview');
+        console.log('Preview image upload failed, continuing without preview');
       }
     }
     
-    // Create wrapper URL that will show Farcaster frame preview
+    // 🎯 KEY CHANGE: Create mini app playback URL instead of direct audio
     const baseUrl = window.location.origin;
-    const wrapperUrl = `${baseUrl}/api/audio/preview/${timestamp}?audio=${encodeURIComponent(audioUrl)}${previewImageUrl ? `&preview=${encodeURIComponent(previewImageUrl)}` : ''}`;
+    const miniAppPlaybackUrl = `${baseUrl}/play/${timestamp}?audio=${encodeURIComponent(audioUrl)}${previewImageUrl ? `&preview=${encodeURIComponent(previewImageUrl)}` : ''}`;
     
-    console.log('🔗 Generated wrapper URL:', wrapperUrl);
+    console.log('🎵 Generated mini app playback URL:', miniAppPlaybackUrl);
     
     // Try to shorten the wrapper URL for better sharing
-    let finalUrl = wrapperUrl;
+    let finalUrl = miniAppPlaybackUrl;
     
     try {
-      finalUrl = await shortenUrl(wrapperUrl);
+      finalUrl = await shortenUrl(miniAppPlaybackUrl);
     } catch (error) {
       console.log('TinyURL failed, trying is.gd...');
       try {
         // Fallback to is.gd
-        finalUrl = await shortenUrlAlternative(wrapperUrl);
+        finalUrl = await shortenUrlAlternative(miniAppPlaybackUrl);
       } catch (error2) {
         console.log('Both shorteners failed, using original URL');
-        finalUrl = wrapperUrl;
+        finalUrl = miniAppPlaybackUrl;
       }
     }
     
-    console.log('🎯 Final shareable URL:', finalUrl);
+    console.log('Final mini app shareable URL:', finalUrl);
     
     return finalUrl;
     
   } catch (error) {
-    console.error('❌ Link generation failed:', error);
+    console.error('Link generation failed:', error);
     throw new Error(`Link generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };

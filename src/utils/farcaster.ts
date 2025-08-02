@@ -25,7 +25,7 @@ export const generateFarcasterFrame = (data: FarcasterFrameData) => {
   <meta property="fc:frame:image" content="${videoUrl}" />
   <meta property="fc:frame:image:aspect_ratio" content="1:1" />
   <meta property="fc:frame:video" content="${videoUrl}" />
-  <meta property="fc:frame:button:1" content="🔊 Play Audio" />
+  <meta property="fc:frame:button:1" content="Play Audio" />
   <meta property="fc:frame:button:1:action" content="link" />
   <meta property="fc:frame:button:1:target" content="${videoUrl}" />
   

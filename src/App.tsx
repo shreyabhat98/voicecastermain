@@ -117,16 +117,20 @@ const VoiceMessageCard = ({
           {/* Play/Pause button overlay */}
           <button
             onClick={onPlayPause}
-            className="absolute inset-0 flex items-center justify-center focus:outline-none"
-            style={{ background: 'transparent', border: 'none' }}
+            className="absolute inset-0 flex items-center justify-center focus:outline-none bg-white/10 hover:bg-white/20 transition-all rounded-full"
+            style={{ border: 'none' }}
           >
             {isPlaying ? (
-              <div className="flex space-x-1">
-                <div className="w-1.5 h-6 bg-white rounded-full"></div>
-                <div className="w-1.5 h-6 bg-white rounded-full"></div>
+              <div className="bg-white/20 rounded-full p-4">
+                <div className="flex space-x-1">
+                  <div className="w-1.5 h-6 bg-white rounded-full"></div>
+                  <div className="w-1.5 h-6 bg-white rounded-full"></div>
+                </div>
               </div>
             ) : (
-              <div className="w-0 h-0 border-l-[12px] border-l-white border-y-[8px] border-y-transparent ml-1"></div>
+              <div className="bg-white/20 rounded-full p-4">
+                <div className="w-0 h-0 border-l-[12px] border-l-white border-y-[8px] border-y-transparent ml-1"></div>
+              </div>
             )}
           </button>
         </div>
@@ -198,7 +202,7 @@ function App() {
         setUserProfile({
           name: "You",
           username: "@voicecaster",
-          avatar: "https://via.placeholder.com/64x64/8B5CF6/FFFFFF?text=🎤"
+          avatar: "https://via.placeholder.com/64x64/8B5CF6/FFFFFF?text=Voice"
         });
         setTimeout(() => {
           setIsLoading(false);
@@ -212,7 +216,7 @@ function App() {
   // Start recording
   const startRecording = async () => {
     try {
-      console.log('🎤 Starting recording...');
+      console.log('Starting recording...');
       
       const constraints = {
         audio: {
@@ -323,6 +327,7 @@ function App() {
         audio.duration !== Infinity
       ) {
         setDuration(audio.duration);
+        setRecordedDuration(audio.duration);
       } else {
         // Fallback: use recorded duration if audio duration is invalid
         console.log('Using recorded duration as fallback:', recordedDuration);
@@ -343,6 +348,7 @@ function App() {
       // Additional check when audio is fully loaded
       if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
         setDuration(audio.duration);
+        setRecordedDuration(audio.duration);
       }
     };
 
@@ -386,7 +392,7 @@ function App() {
   // Web Share API function - INSTANT (no async delays)
   const saveToPhotos = async () => {
     if (!generatedVideoBlob) {
-      alert('❌ No video ready. Please generate video first.');
+      alert('No video ready. Please generate video first.');
       return;
     }
 
@@ -394,60 +400,36 @@ function App() {
     const filename = `voice-message-${timestamp}.mp4`;
     const sizeMB = generatedVideoBlob.size / 1024 / 1024;
     
-    console.log('📱 INSTANT Web Share API call - blob size:', generatedVideoBlob.size);
+    console.log('INSTANT Web Share API call - blob size:', generatedVideoBlob.size);
     
     if (!navigator.share) {
-      // Fallback: Create download link for desktop/browsers without Web Share
-      console.log('📱 Web Share not supported, using download fallback');
-      const downloadUrl = URL.createObjectURL(generatedVideoBlob);
-      const downloadLink = document.createElement('a');
-      downloadLink.href = downloadUrl;
-      downloadLink.download = filename;
-      downloadLink.style.display = 'none';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(downloadUrl);
-      
-      alert('✅ Video downloaded! Check your Downloads folder.\n\n💡 For mobile: Use Safari/Chrome for direct saving to Photos.');
+      alert('Video download not supported on your phone.\n\nPlease share link instead');
       return;
     }
 
     try {
       const file = new File([generatedVideoBlob], filename, { type: 'video/mp4' });
       
-      console.log('📱 Web Share API - IMMEDIATE call with preserved gesture');
+      console.log('Web Share API - IMMEDIATE call with preserved gesture');
       
       await navigator.share({
-        title: '🎤 Voice Message',
+        title: 'Voice Message',
         text: 'Voice message created with VoiceCaster',
         files: [file]
       });
       
-      console.log('✅ Web Share API SUCCESS!');
+      console.log('Web Share API SUCCESS!');
       
     } catch (error) {
-      console.error('❌ Web Share API failed:', error);
+      console.error('Web Share API failed:', error);
 
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('User cancelled share');
         return;
       }
 
-      // Fallback: Create download link when Web Share fails
-      console.log('📱 Web Share failed, using download fallback');
-      const downloadUrl = URL.createObjectURL(generatedVideoBlob);
-      const downloadLink = document.createElement('a');
-      downloadLink.href = downloadUrl;
-      downloadLink.download = filename;
-      downloadLink.style.display = 'none';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(downloadUrl);
-      
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`✅ Video downloaded as fallback!\n\n💡 Web Share failed: ${errorMessage}\n• Check your Downloads folder\n• File size: ${sizeMB.toFixed(1)}MB\n• For mobile: Try Safari/Chrome`);
+      alert(`Share failed: ${errorMessage}\n\n💡 Try:\n• Make sure you have storage space\n• Try in Safari/Chrome\n• Check file size: ${sizeMB.toFixed(1)}MB`);
     }
   };
 
@@ -470,11 +452,11 @@ function App() {
     try {
       if (option === 'link') {
         // Generate preview image
-        console.log('🖼️ Generating preview image...');
+        console.log('Generating preview image...');
         const previewImageBlob = await generateVoiceCardPreview({
           userProfile: userProfile || undefined
         });
-        console.log('✅ Preview image generated, size:', previewImageBlob.size);
+        console.log('Preview image generated, size:', previewImageBlob.size);
         
         // Generate shareable link with preview
         const shareUrl = await generateShareableLink(audioBlob, previewImageBlob);
@@ -483,11 +465,11 @@ function App() {
         // Auto-open Farcaster compose with the link
         try {
           await sdk.actions.composeCast({
-            text: `🎤 Voice message via VoiceCaster`,
+            text: `Voice message via VoiceCaster`,
             embeds: [shareUrl],
           });
           setFarcasterSuccess(true);
-          console.log('✅ Farcaster compose opened successfully');
+          console.log('Farcaster compose opened successfully');
         } catch (error) {
           console.error('Farcaster compose failed:', error);
           setFarcasterSuccess(false);
@@ -495,7 +477,7 @@ function App() {
         }
       } else {
         // STEP 1: Generate video and store it (preserve for instant Web Share later)
-        console.log('🎬 STEP 1: Generating video...');
+        console.log('STEP 1: Generating video...');
         console.log('Audio blob size:', audioBlob.size, 'Duration:', duration > 0 ? duration : recordedDuration);
         
         try {
@@ -505,12 +487,12 @@ function App() {
             userProfile: userProfile || undefined
           });
           
-          console.log('✅ Video generated successfully, size:', videoBlob.size);
+          console.log('Video generated successfully, size:', videoBlob.size);
           
           // CRITICAL: Store the video blob for instant Web Share API
           setGeneratedVideoBlob(videoBlob);
           
-          console.log('🎯 Video ready for INSTANT Web Share API call!');
+          console.log('Video ready for INSTANT Web Share API call!');
           
         } catch (videoError) {
           console.error('Video generation failed:', videoError);
@@ -534,7 +516,6 @@ function App() {
     );
   }
 
-  console.log('VoiceMessageCard props:', { duration, recordedDuration });
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-indigo-600 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
@@ -613,21 +594,17 @@ function App() {
                   {isProcessing ? (
                     <div className="text-center">
                       <BouncingMic />
-                      <p className="text-white mt-4">Creating shareable link...</p>
+                      <p className="text-white mt-4">Creating shareable link</p>
                     </div>
                   ) : farcasterSuccess ? (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">✅ Farcaster Compose Opened!</h3>
-                      <div className="bg-green-500/10 border border-green-400/20 rounded-xl p-4 mb-4">
-                        <div className="text-green-400 text-sm font-semibold mb-1">🎉 Success!</div>
-                        <div className="text-green-300 text-xs">Your voice message link has been added to Farcaster compose. Just hit send!</div>
-                      </div>
+
                       <div className="bg-white/10 rounded-xl p-4 mb-4">
                         <div className="flex items-center justify-between">
                           <span className="text-white/90 font-mono text-sm truncate mr-2">{generatedLink}</span>
                           <button
                             onClick={copyLink}
-                            className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-all"
+                            className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 p-2 rounded-lg transition-all"
                           >
                             <Copy className="w-4 h-4" />
                           </button>
@@ -643,9 +620,9 @@ function App() {
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">✓ Shareable Link Ready</h3>
+                      
                       <div className="bg-yellow-500/10 border border-yellow-400/20 rounded-xl p-4 mb-4">
-                        <div className="text-yellow-400 text-sm font-semibold mb-1">📱 Manual Share Required</div>
+                        <div className="text-yellow-400 text-sm font-semibold mb-1">Manual Share Required</div>
                         <div className="text-yellow-300 text-xs">Farcaster compose didn't open automatically. Copy the link below and paste it in Farcaster.</div>
                       </div>
                       <div className="bg-white/10 rounded-xl p-4 mb-4">
@@ -653,13 +630,13 @@ function App() {
                           <span className="text-white/90 font-mono text-sm truncate mr-2">{generatedLink}</span>
                           <button
                             onClick={copyLink}
-                            className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-all"
+                            className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 p-2 rounded-lg transition-all"
                           >
                             <Copy className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
-                      <p className="text-white/70 text-sm mb-4">Copy this link and paste it in your Farcaster cast. It will show a beautiful audio preview!</p>
+                       {/* <p className="text-white/70 text-sm mb-4">Copy this link and paste it in your Farcaster cast. It will show a beautiful audio preview!</p> */}
                       <button
                         onClick={() => window.open(`https://${generatedLink}`, '_blank')}
                         className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
@@ -681,7 +658,7 @@ function App() {
                     </div>
                   ) : generatedVideoBlob ? (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">✅ Video Ready for saving!</h3>
+                      {/* <h3 className="text-white font-semibold mb-4">✅ Video Ready for saving!</h3> */}
                       <p className="text-white/70 text-sm mb-4">
                         Video generated successfully! Click below to save directly to Gallery.
                       </p>
@@ -690,19 +667,19 @@ function App() {
                         className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center mb-4"
                       >
                         <Download className="w-5 h-5 mr-2" />
-                        💾 Save to Gallery
+                         Save to Gallery
                       </button>
-                      <button
+                     {/*  <button
                         onClick={() => handleShareOption('video')}
                         className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center"
                       >
                         <RotateCcw className="w-4 h-4 mr-2" />
                         Regenerate Video
-                      </button>
+                      </button> */}
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">❌ Video Generation Failed</h3>
+                      <h3 className="text-white font-semibold mb-4">Video Generation Failed</h3>
                       <p className="text-white/70 text-sm mb-4">
                         Something went wrong during video generation. Please try again or use Share Link instead.
                       </p>
@@ -743,8 +720,8 @@ function App() {
                 {/* Detect mini app and show recommendation */}
                 {(window.location !== window.parent.location || navigator.userAgent.includes('Farcaster')) && (
                   <div className="bg-blue-500/10 border border-blue-400/20 rounded-xl p-3 mb-4">
-                    <div className="text-blue-400 text-sm font-semibold mb-1">📱 Mini App Detected</div>
-                    <div className="text-blue-300 text-xs">Recommended: Use "Share Link" for best experience in Farcaster mini apps</div>
+                   { /* <div className="text-blue-400 text-sm font-semibold mb-1">Mini App Detected</div>
+                    <div className="text-blue-300 text-xs">Recommended: Use "Share Link" for best experience in Farcaster mini apps</div> */}
                   </div>
                 )}
                 
