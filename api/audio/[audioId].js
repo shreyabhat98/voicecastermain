@@ -12,7 +12,8 @@ export default function handler(req, res) {
   const miniAppUrl = `https://${req.headers.host}/play/${audioId}?audio=${encodeURIComponent(audio)}`;
   
   // 🎯 FIX 2: Use a simple placeholder image for now
-  const frameImageUrl = `https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=Voice+Voice+Message`;
+  //const frameImageUrl = `https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=Voice+Voice+Message`;
+  const frameImageUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}`;
   
   const html = `
 <!DOCTYPE html>
