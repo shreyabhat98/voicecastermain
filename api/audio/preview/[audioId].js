@@ -84,7 +84,7 @@ export default function handler(req, res) {
       .voice-card {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 24px;
-        padding: 32px 16px 24px 16px;
+        padding: 48px 16px 24px 16px;
         backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.2);
         width: calc(100% - 32px);
@@ -245,7 +245,7 @@ export default function handler(req, res) {
       
       @media (max-width: 768px) {
         .voice-card {
-          padding: 12px 3vw 12px 3vw;
+          padding: 28px 3vw 12px 3vw;
           margin: 10px 3vw 10px 3vw;
           min-width: 0;
           min-height: 220px;
