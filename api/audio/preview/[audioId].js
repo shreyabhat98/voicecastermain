@@ -112,6 +112,8 @@ export default function handler(req, res) {
       
       .audio-player {
         position: relative;
+        min-height: 180px;
+        width: 100%;
       }
       
       .profile-circle {
@@ -259,10 +261,8 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="speaker-icon"></div>
         <div class="header-text">${pageTitle}</div>
-        
-        <div class="audio-player">
+        <div class="audio-player" style="min-height: 180px; position: relative;">
             <div class="profile-circle" id="profileCircle" tabindex="0">
                 ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : `
                 <div class="mic-fallback-container">
@@ -274,15 +274,9 @@ export default function handler(req, res) {
                     xmlns="http://www.w3.org/2000/svg"
                     class="mic-fallback"
                   >
-                    <path
-                      d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12 V4C14 2.9 13.1 2 12 2Z"
-                    />
-                    <path
-                      d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
-                    />
-                    <path
-                      d="M12 19V22H8V24H16V22H12V19Z"
-                    />
+                    <path d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12 V4C14 2.9 13.1 2 12 2Z"/>
+                    <path d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"/>
+                    <path d="M12 19V22H8V24H16V22H12V19Z"/>
                   </svg>
                 </div>
                 `}
@@ -307,23 +301,15 @@ export default function handler(req, res) {
                     xmlns="http://www.w3.org/2000/svg"
                     style="color: white;"
                   >
-                    <path
-                      d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="M12 19V22H8V24H16V22H12V19Z"
-                      fill="currentColor"
-                    />
+                    <path d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z" fill="currentColor"/>
+                    <path d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z" fill="currentColor"/>
+                    <path d="M12 19V22H8V24H16V22H12V19Z" fill="currentColor"/>
                   </svg>
                   <span>Voice</span>
                 </div>
             </div>
         </div>
+        <a href="/" class="cta-button" style="margin-top: 32px; display: block;">Create your own voice message</a>
     </div>
     <div style="width: 100%; display: flex; justify-content: center;">
       <a href="/" class="cta-button">Create your own voice message</a>
