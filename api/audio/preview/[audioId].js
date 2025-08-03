@@ -55,16 +55,16 @@ export default function handler(req, res) {
     <meta name="twitter:description" content="Listen to this voice message created with VoiceCaster" />
     <meta name="twitter:image" content="${previewImageUrl}" />
     
-    <!-- Farcaster Frame Meta Tags -->
-    <meta property="fc:frame" content="vNext" />
-    <meta property="fc:frame:image" content="${previewImageUrl}" />
-    <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-    <meta property="fc:frame:button:1" content="Play Audio" />
-    <meta property="fc:frame:button:1:action" content="launch_frame" />
-    <meta property="fc:frame:button:1:target" content="https://${req.headers.host}" />
-    <meta property="fc:frame:button:2" content="Create Voice Message" />
-    <meta property="fc:frame:button:2:action" content="link" />
-    <meta property="fc:frame:button:2:target" content="https://${req.headers.host}" />
+   <!-- Farcaster Frame Meta Tags -->
+      <meta property="fc:frame" content="vNext" />
+      <meta property="fc:frame:image" content="https://${req.headers.host}/api/preview/${audioId}" />
+      <meta property="fc:frame:image:aspect_ratio" content="1:1" />
+      <meta property="fc:frame:button:1" content="Play Audio" />
+      <meta property="fc:frame:button:1:action" content="launch_frame" />
+      <meta property="fc:frame:button:1:target" content="${wrapperUrl}" />
+      <meta property="fc:frame:button:2" content="Create Voice Message" />
+      <meta property="fc:frame:button:2:action" content="link" />
+      <meta property="fc:frame:button:2:target" content="https://${req.headers.host}" />
     
     <title>${pageTitle} via VoiceCaster</title>
     
@@ -222,20 +222,6 @@ export default function handler(req, res) {
         box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
       }
       
-      .direct-link {
-        margin-top: 20px;
-        padding: 15px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      
-      .direct-link a {
-        color: #60a5fa;
-        text-decoration: none;
-        word-break: break-all;
-      }
-      
       @media (max-width: 768px) {
         .voice-card {
           padding: 25px;
@@ -254,7 +240,7 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="speaker-icon"></div>
+        <div class="speaker-icon">🔊</div>
         <div class="header-text">${pageTitle}</div>
         
         <div class="audio-player">
@@ -324,14 +310,23 @@ export default function handler(req, res) {
         </div>
         
         <a href="/" class="cta-button">Create your own voice message</a>
-        
-        <div class="direct-link">
-            <small style="opacity: 0.7;">Direct audio link:</small><br>
-            <a href="${audio}" target="_blank">${audio}</a>
-        </div>
     </div>
     
     <script>
+        const audio = document.getElementById('audioPlayer');
+        const profileCircle = document.querySelector('.profile-circle');
+        
+        // Simple toggle function
+        function toggleAudio() {
+            if (audio.paused) {
+                audio.play().catch(err => {
+                    console.log('Play failed:', err);
+                });
+            } else {
+                audio.pause();
+            }
+        }
+        
         // Function to show mic fallback if profile image fails
         function showMicFallback() {
             const profileCircle = document.getElementById('profileCircle');
@@ -346,7 +341,7 @@ export default function handler(req, res) {
                     class="mic-fallback"
                   >
                     <path
-                      d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
+                      d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12 V4C14 2.9 13.1 2 12 2Z"
                     />
                     <path
                       d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
@@ -361,157 +356,18 @@ export default function handler(req, res) {
                 </div>
             \`;
         }
-
-        function toggleAudio() {
-            if (audio.paused) {
-                audio.play();
-            } else {
-                audio.pause();
-            }
-        }
         
-        // Safari-specific audio handling
-        const audio = document.getElementById('audioPlayer');
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        let isErrorLooping = false;
-        let audioLoaded = false;
-        
-        if (isSafari) {
-            console.log('Safari detected - using Safari-specific audio handling');
-            
-            // Remove crossorigin for Safari
-            audio.removeAttribute('crossorigin');
-            
-            // Force load audio when user first interacts with ANY part of the page
-            const forceLoadAudio = () => {
-                if (!audioLoaded) {
-                    console.log('Safari: Force loading audio...');
-                    audio.load();
-                    audioLoaded = true;
-                }
-            };
-            
-            // Add click listeners to trigger audio loading
-            document.addEventListener('click', forceLoadAudio, { once: true });
-            document.addEventListener('touchstart', forceLoadAudio, { once: true });
-            
-            // Also try to load when audio controls are clicked
-            audio.addEventListener('click', forceLoadAudio);
-            audio.addEventListener('play', () => {
-                if (!audioLoaded) {
-                    forceLoadAudio();
-                    // Try to play again after loading
-                    setTimeout(() => {
-                        audio.play().catch(err => console.log('Safari delayed play failed:', err));
-                    }, 100);
-                }
-            });
-        }
-        
-        // Custom play function that ensures loading first
-        const safePlay = () => {
-            console.log('Safe play triggered');
-            
-            if (isSafari && (!audioLoaded || audio.readyState < 2)) {
-                console.log('Safari: Loading audio before play...');
-                audio.load();
-                
-                // Wait for audio to be ready, then play
-                const tryPlay = () => {
-                    if (audio.readyState >= 2) {
-                        console.log('Safari: Audio ready, playing...');
-                        audio.play().catch(err => {
-                            console.log('Safari play failed:', err);
-                        });
-                    } else {
-                        console.log('Safari: Waiting for audio to load...');
-                        setTimeout(tryPlay, 100);
-                    }
-                };
-                
-                audio.addEventListener('canplay', tryPlay, { once: true });
-                setTimeout(tryPlay, 500); // Fallback timeout
-                
-            } else {
-                // Non-Safari or already loaded
-                audio.play().catch(err => {
-                    console.log('Play failed:', err);
-                });
-            }
-        };
-        
-        // Intercept clicks on the audio element for Safari
-        audio.addEventListener('click', (e) => {
-            if (isSafari && e.target === audio) {
-                e.preventDefault();
-                safePlay();
-            }
-        });
-        
-        // Prevent error loops (especially on Safari)
-        audio.addEventListener('error', (e) => {
-            if (isErrorLooping) return;
-            isErrorLooping = true;
-            console.error('Audio error:', e);
-            
-            if (isSafari) {
-                console.log('Safari audio error - trying to reload...');
-                // Reset and try again
-                audioLoaded = false;
-                setTimeout(() => {
-                    audio.load();
-                    audioLoaded = true;
-                }, 1000);
-            }
-            
-            // Show user-friendly error message after multiple failures
-            setTimeout(() => {
-                if (isErrorLooping) {
-                    const audioContainer = audio.parentElement;
-                    audioContainer.innerHTML = \`
-                        <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.8);">
-                            <p>Audio needs manual activation</p>
-                            <button onclick="window.open('\${audio.src}', '_blank')" 
-                                    style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; margin-top: 10px; cursor: pointer;">
-                                Open Audio File
-                            </button>
-                        </div>
-                    \`;
-                }
-            }, 3000);
-        });
-        
-        // Success handlers
-        audio.addEventListener('canplay', () => {
-            console.log('Audio can play');
-            isErrorLooping = false;
-            audioLoaded = true;
-        });
-        
-        audio.addEventListener('loadeddata', () => {
-            console.log('Audio loaded successfully');
-            audioLoaded = true;
-        });
-        
-        // Visual feedback
+        // Add visual feedback when playing
         audio.addEventListener('play', () => {
-            if (!isErrorLooping) {
-                console.log('Audio started playing');
-                document.querySelector('.profile-circle').style.animation = 'pulse 1s infinite';
-            }
+            profileCircle.style.animation = 'pulse 1s infinite';
         });
         
         audio.addEventListener('pause', () => {
-            document.querySelector('.profile-circle').style.animation = 'none';
+            profileCircle.style.animation = 'none';
         });
         
         audio.addEventListener('ended', () => {
-            document.querySelector('.profile-circle').style.animation = 'none';
-        });
-        
-        // Force load when user clicks profile circle (additional Safari workaround)
-        document.querySelector('.profile-circle').addEventListener('click', () => {
-            safePlay();
+            profileCircle.style.animation = 'none';
         });
         
         // Add CSS animation

@@ -460,7 +460,7 @@ function App() {
         // Auto-open Farcaster compose with the link
         try {
           await sdk.actions.composeCast({
-            text: `🎤 Voice message via VoiceCaster`,
+            text: `Voice message via VoiceCaster`,
             embeds: [shareUrl],
           });
           setFarcasterSuccess(true);
@@ -592,21 +592,26 @@ function App() {
                       <BouncingMic />
                       <p className="text-white mt-4">Creating shareable link...</p>
                     </div>
-                  ) : farcasterSuccess ? (
+                  ) 
+                  : farcasterSuccess ? (
                     <div>
+                      {/*
                       <h3 className="text-white font-semibold mb-4">✅ Farcaster Compose Opened!</h3>
                       <div className="bg-green-500/10 border border-green-400/20 rounded-xl p-4 mb-4">
                         <div className="text-green-400 text-sm font-semibold mb-1">🎉 Success!</div>
                         <div className="text-green-300 text-xs">Your voice message link has been added to Farcaster compose. Just hit send!</div>
-                      </div>
+                      </div> 
+                      */}
                       <div className="bg-white/10 rounded-xl p-4 mb-4">
                         <div className="flex items-center justify-between">
                           <span className="text-white/90 font-mono text-sm truncate mr-2">{generatedLink}</span>
                           <button
                             onClick={copyLink}
-                            className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-all"
+                            className="p-2 rounded-lg transition-all focus:outline-none group"
+                            style={{ background: 'transparent' }}
+                            aria-label="Copy to clipboard"
                           >
-                            <Copy className="w-4 h-4" />
+                            <Copy className="w-4 h-4 text-white/70 group-hover:text-white group-active:text-black transition-colors" />
                           </button>
                         </div>
                       </div>
@@ -622,7 +627,7 @@ function App() {
                     <div>
                       <h3 className="text-white font-semibold mb-4">✓ Shareable Link Ready</h3>
                       <div className="bg-yellow-500/10 border border-yellow-400/20 rounded-xl p-4 mb-4">
-                        <div className="text-yellow-400 text-sm font-semibold mb-1">📱 Manual Share Required</div>
+                        <div className="text-yellow-400 text-sm font-semibold mb-1"> Manual Share Required</div>
                         <div className="text-yellow-300 text-xs">Farcaster compose didn't open automatically. Copy the link below and paste it in Farcaster.</div>
                       </div>
                       <div className="bg-white/10 rounded-xl p-4 mb-4">
@@ -630,9 +635,11 @@ function App() {
                           <span className="text-white/90 font-mono text-sm truncate mr-2">{generatedLink}</span>
                           <button
                             onClick={copyLink}
-                            className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-all"
+                            className="p-2 rounded-lg transition-all focus:outline-none group"
+                            style={{ background: 'transparent' }}
+                            aria-label="Copy to clipboard"
                           >
-                            <Copy className="w-4 h-4" />
+                            <Copy className="w-4 h-4 text-white/70 group-hover:text-white group-active:text-black transition-colors" />
                           </button>
                         </div>
                       </div>
@@ -645,9 +652,10 @@ function App() {
                         Preview Link
                       </button>
                     </div>
-                  )}
+                  )
+                  }
                 </div>
-              )}
+              )} 
 
               {shareOption === 'video' && (
                 <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
@@ -658,7 +666,7 @@ function App() {
                     </div>
                   ) : generatedVideoBlob ? (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">✅ Video Ready for saving!</h3>
+                      <h3 className="text-white font-semibold mb-4"> Video Ready for saving!</h3>
                       <p className="text-white/70 text-sm mb-4">
                         Video generated successfully! Click below to save directly to Gallery.
                       </p>
@@ -667,7 +675,7 @@ function App() {
                         className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center mb-4"
                       >
                         <Download className="w-5 h-5 mr-2" />
-                        💾 Save to Gallery
+                         Save to Gallery
                       </button>
                       <button
                         onClick={() => handleShareOption('video')}
@@ -679,7 +687,7 @@ function App() {
                     </div>
                   ) : (
                     <div>
-                      <h3 className="text-white font-semibold mb-4">❌ Video Generation Failed</h3>
+                      <h3 className="text-white font-semibold mb-4">Video Generation Failed</h3>
                       <p className="text-white/70 text-sm mb-4">
                         Something went wrong during video generation. Please try again or use Share Link instead.
                       </p>
