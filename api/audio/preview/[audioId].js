@@ -2,22 +2,24 @@ export default function handler(req, res) {
   const { audioId } = req.query;
   const { audio } = req.query; // Direct audio URL from Supabase
   const { preview } = req.query; // Preview image URL from Supabase
-  const { avatar } = req.query; // NEW: Profile avatar URL
-  const { username } = req.query; // NEW: Username
-  const { name } = req.query; // NEW: Display name
+  const { avatar } = req.query; // Profile avatar URL
+  const { username } = req.query; // Username
+  const { name } = req.query; // Display name
   
   if (!audio) {
     return res.status(400).json({ error: 'Audio URL required' });
   }
   
-  const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}`;
-  
-  let pageTitle = '🎤 Voice Message';
+  // Create dynamic title based on available user info
+  let pageTitle = 'Voice Message';
   if (name) {
-    pageTitle = `🎤 Voice message from ${name}`;
+    pageTitle = `Voice message from ${name}`;
   } else if (username) {
-    pageTitle = `🎤 Voice message from @${username}`;
+    pageTitle = `Voice message from @${username}`;
   }
+  
+  // Build wrapper URL with ALL parameters
+  const wrapperUrl = `https://${req.headers.host}/api/audio/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}${username ? `&username=${encodeURIComponent(username)}` : ''}${name ? `&name=${encodeURIComponent(name)}` : ''}`;
   
   // Use preview image if available, otherwise fallback to placeholder
   const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=Voice+Message';
@@ -30,7 +32,7 @@ export default function handler(req, res) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Required Open Graph tags for audio embedding -->
-    <meta property="og:title" content="Voice Message via VoiceCaster" />
+    <meta property="og:title" content="${pageTitle} via VoiceCaster" />
     <meta property="og:type" content="website" />
     <meta property="og:description" content="Listen to this voice message created with VoiceCaster" />
     <meta property="og:url" content="${wrapperUrl}" />
@@ -49,7 +51,7 @@ export default function handler(req, res) {
     
     <!-- Twitter Card tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Voice Message via VoiceCaster" />
+    <meta name="twitter:title" content="${pageTitle} via VoiceCaster" />
     <meta name="twitter:description" content="Listen to this voice message created with VoiceCaster" />
     <meta name="twitter:image" content="${previewImageUrl}" />
     
@@ -57,11 +59,14 @@ export default function handler(req, res) {
     <meta property="fc:frame" content="vNext" />
     <meta property="fc:frame:image" content="${previewImageUrl}" />
     <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-    <meta property="fc:frame:button:1" content="Open in App" />
+    <meta property="fc:frame:button:1" content="Play Audio" />
     <meta property="fc:frame:button:1:action" content="launch_frame" />
     <meta property="fc:frame:button:1:target" content="https://${req.headers.host}" />
+    <meta property="fc:frame:button:2" content="Create Voice Message" />
+    <meta property="fc:frame:button:2:action" content="link" />
+    <meta property="fc:frame:button:2:target" content="https://${req.headers.host}" />
     
-    <title>Voice Message via VoiceCaster</title>
+    <title>${pageTitle} via VoiceCaster</title>
     
     <style>
       body {
@@ -77,6 +82,14 @@ export default function handler(req, res) {
         align-items: center;
       }
       
+      .speaker-icon {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 20px;
+        opacity: 0.7;
+      }
+      
       .voice-card {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 24px;
@@ -87,6 +100,7 @@ export default function handler(req, res) {
         width: 90%;
         text-align: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        position: relative;
       }
       
       .header-text {
@@ -117,6 +131,37 @@ export default function handler(req, res) {
         border: 3px solid rgba(255, 255, 255, 0.3);
         position: relative;
         overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+      
+      .profile-circle:hover {
+        transform: scale(1.05);
+      }
+      
+      .play-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      
+      .profile-circle:hover .play-overlay {
+        opacity: 1;
+      }
+      
+      .play-button {
+        width: 0;
+        height: 0;
+        border-left: 20px solid white;
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent;
+        margin-left: 6px;
       }
       
       .profile-image {
@@ -126,10 +171,22 @@ export default function handler(req, res) {
         border-radius: 50%;
       }
       
+      .mic-fallback-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+      }
+      
       .mic-fallback {
         width: 48px;
         height: 48px;
         color: white;
+        fill: white;
+        flex-shrink: 0;
       }
       
       audio {
@@ -165,6 +222,20 @@ export default function handler(req, res) {
         box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
       }
       
+      .direct-link {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .direct-link a {
+        color: #60a5fa;
+        text-decoration: none;
+        word-break: break-all;
+      }
+      
       @media (max-width: 768px) {
         .voice-card {
           padding: 25px;
@@ -183,33 +254,36 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="header-text">Voice Message</div>
+        <div class="speaker-icon"></div>
+        <div class="header-text">${pageTitle}</div>
         
         <div class="audio-player">
-            <div class="profile-circle" id="profileCircle">
+            <div class="profile-circle" id="profileCircle" onclick="toggleAudio()">
                 ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : `
-                <svg 
-                  width="48" 
-                  height="48" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="mic-fallback"
-                >
-                  <path
-                    d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M12 19V22H8V24H16V22H12V19Z"
-                    fill="currentColor"
-                  />
-                </svg>
+                <div class="mic-fallback-container">
+                  <svg 
+                    width="48" 
+                    height="48" 
+                    viewBox="0 0 24 24" 
+                    fill="white" 
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="mic-fallback"
+                  >
+                    <path
+                      d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
+                    />
+                    <path
+                      d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
+                    />
+                    <path
+                      d="M12 19V22H8V24H16V22H12V19Z"
+                    />
+                  </svg>
+                </div>
                 `}
+                <div class="play-overlay">
+                    <div class="play-button"></div>
+                </div>
             </div>
             
             <audio controls preload="none" id="audioPlayer" webkit-playsinline playsinline>
@@ -250,23 +324,51 @@ export default function handler(req, res) {
         </div>
         
         <a href="/" class="cta-button">Create your own voice message</a>
+        
+        <div class="direct-link">
+            <small style="opacity: 0.7;">Direct audio link:</small><br>
+            <a href="${audio}" target="_blank">${audio}</a>
+        </div>
     </div>
     
     <script>
         // Function to show mic fallback if profile image fails
         function showMicFallback() {
             const profileCircle = document.getElementById('profileCircle');
-            if (profileCircle) {
-                profileCircle.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="mic-fallback">' +
-                  '<path d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z" fill="currentColor" />' +
-                  '<path d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z" fill="currentColor" />' +
-                  '<path d="M12 19V22H8V24H16V22H12V19Z" fill="currentColor" />' +
-                '</svg>';
+            profileCircle.innerHTML = \`
+                <div class="mic-fallback-container">
+                  <svg 
+                    width="48" 
+                    height="48" 
+                    viewBox="0 0 24 24" 
+                    fill="white" 
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="mic-fallback"
+                  >
+                    <path
+                      d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
+                    />
+                    <path
+                      d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
+                    />
+                    <path
+                      d="M12 19V22H8V24H16V22H12V19Z"
+                    />
+                  </svg>
+                </div>
+                <div class="play-overlay">
+                    <div class="play-button"></div>
+                </div>
+            \`;
+        }
+
+        function toggleAudio() {
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
             }
         }
-        
-        // Auto-play functionality (if allowed by browser)
-        const audio = document.querySelector('audio');
         
         // Safari-specific audio handling
         const audio = document.getElementById('audioPlayer');
@@ -305,9 +407,6 @@ export default function handler(req, res) {
                 }
             });
         }
-        
-        // Override the play button behavior for Safari
-        const playButton = audio.querySelector('button, [role="button"]') || audio;
         
         // Custom play function that ensures loading first
         const safePlay = () => {
@@ -369,14 +468,15 @@ export default function handler(req, res) {
             setTimeout(() => {
                 if (isErrorLooping) {
                     const audioContainer = audio.parentElement;
-                    audioContainer.innerHTML =
-                        '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.8);">' +
-                        '<p>🎵 ' + (isSafari ? 'Audio needs manual activation' : 'Audio temporarily unavailable') + '</p>' +
-                        '<button onclick="window.open(\'' + audio.src + '\', \'_blank\')" ' +
-                        'style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; margin-top: 10px; cursor: pointer;">' +
-                        '📱 Open Audio File' +
-                        '</button>' +
-                        '</div>';
+                    audioContainer.innerHTML = \`
+                        <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.8);">
+                            <p>Audio needs manual activation</p>
+                            <button onclick="window.open('\${audio.src}', '_blank')" 
+                                    style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; margin-top: 10px; cursor: pointer;">
+                                Open Audio File
+                            </button>
+                        </div>
+                    \`;
                 }
             }, 3000);
         });
