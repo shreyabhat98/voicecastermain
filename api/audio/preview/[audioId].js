@@ -84,33 +84,33 @@ export default function handler(req, res) {
       .voice-card {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 24px;
-        padding: 40px 24px 32px 24px;
+        padding: 32px 16px 24px 16px;
         backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        width: 100%;
-        max-width: 480px;
-        min-width: 280px;
-        min-height: 420px;
+        width: calc(100% - 32px);
+        max-width: 420px;
+        min-width: 220px;
+        min-height: 320px;
         text-align: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         position: relative;
-        margin: 40px auto 24px auto;
+        margin: 32px auto 20px auto;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         align-items: stretch;
       }
       .header-text {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         font-weight: 600;
-        margin-bottom: 30px;
+        margin-bottom: 18px;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
       .audio-player {
         position: relative;
-        min-height: 180px;
+        min-height: 140px;
         width: 100%;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
       }
       .profile-circle {
         width: 120px;
@@ -235,6 +235,7 @@ export default function handler(req, res) {
         margin: 0 auto 0 auto;
         width: auto;
         max-width: 320px;
+        margin-top: 0;
       }
       
       .cta-button:hover {
@@ -244,18 +245,23 @@ export default function handler(req, res) {
       
       @media (max-width: 768px) {
         .voice-card {
-          padding: 18px 6vw 18px 6vw;
-          margin: 16px 0 16px 0;
+          padding: 12px 3vw 12px 3vw;
+          margin: 10px 3vw 10px 3vw;
           min-width: 0;
-          min-height: 340px;
+          min-height: 220px;
+          max-width: 98vw;
+          border-radius: 18px;
         }
         .header-text {
-          font-size: 1.1rem;
+          font-size: 1rem;
         }
         .profile-circle {
-          width: 90px;
-          height: 90px;
-          font-size: 32px;
+          width: 80px;
+          height: 80px;
+          font-size: 28px;
+        }
+        .audio-player {
+          min-height: 90px;
         }
         .cta-button {
           font-size: 1rem;
