@@ -64,7 +64,7 @@ export const shortenUrlAlternative = async (longUrl: string): Promise<string> =>
 export const generateShareableLink = async (
   audioBlob: Blob, 
   previewImageBlob?: Blob,
-  userProfile?: { avatar?: string } // NEW: Accept user profile with avatar
+  userProfile?: { avatar?: string; name?: string; username?: string } // UPDATED: Include name and username
 ): Promise<string> => {
   try {
     console.log('📤 Uploading audio for link generation...');
@@ -97,9 +97,15 @@ export const generateShareableLink = async (
       wrapperUrl += `&preview=${encodeURIComponent(previewImageUrl)}`;
     }
     
-    // Add avatar if available
+    // Add user profile data if available
     if (userProfile?.avatar) {
       wrapperUrl += `&avatar=${encodeURIComponent(userProfile.avatar)}`;
+    }
+    if (userProfile?.name) {
+      wrapperUrl += `&name=${encodeURIComponent(userProfile.name)}`;
+    }
+    if (userProfile?.username) {
+      wrapperUrl += `&username=${encodeURIComponent(userProfile.username)}`;
     }
     
     console.log('🔗 Generated wrapper URL:', wrapperUrl);
