@@ -256,7 +256,7 @@ export default function handler(req, res) {
                     class="mic-fallback"
                   >
                     <path
-                      d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
+                      d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12 V4C14 2.9 13.1 2 12 2Z"
                     />
                     <path
                       d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
@@ -281,7 +281,6 @@ export default function handler(req, res) {
             </audio>
             
             <div class="audio-info">
-                <span id="durationDisplay">--:--</span>
                 <div style="display: flex; align-items: center; gap: 4px;">
                   <svg 
                     width="16" 
@@ -315,25 +314,17 @@ export default function handler(req, res) {
     <script>
         const audio = document.getElementById('audioPlayer');
         const profileCircle = document.querySelector('.profile-circle');
-        const durationDisplay = document.getElementById('durationDisplay');
         
         // Force load audio immediately when page loads
         window.addEventListener('load', () => {
             audio.load();
         });
         
-        // Safari-specific fixes
+        // Safari-specific fixes (minimal, no seeking hack)
         const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         if (isSafari) {
             audio.removeAttribute('crossorigin');
-            
-            // Safari-specific: Fix the "Error" text issue
-            audio.addEventListener('loadedmetadata', () => {
-                // Force Safari to refresh the duration display
-                audio.currentTime = 0;
-            });
-            
-            // Additional Safari fix: ensure metadata loads properly
+            // Only reload if metadata fails to load after a short delay
             setTimeout(() => {
                 if (audio.readyState === 0) {
                     audio.load();
@@ -392,53 +383,6 @@ export default function handler(req, res) {
         audio.addEventListener('ended', () => {
             profileCircle.style.animation = 'none';
         });
-        
-        // --- Duration display logic ---
-        function formatTime(seconds) {
-            if (isNaN(seconds) || seconds === Infinity) return '--:--';
-            const m = Math.floor(seconds / 60);
-            const s = Math.floor(seconds % 60);
-            return \`\${m}:\${s.toString().padStart(2, '0')}\`;
-        }
-        function updateDurationDisplay() {
-            let dur = audio.duration;
-            if (isNaN(dur) || dur === Infinity) {
-                durationDisplay.textContent = '--:--';
-            } else {
-                durationDisplay.textContent = formatTime(dur);
-            }
-        }
-        // Safari-specific duration workaround
-        function safariDurationWorkaround() {
-            if (audio.duration === Infinity || isNaN(audio.duration)) {
-                // Try to force duration calculation
-                const seekTo = 1e10;
-                const onSeeked = () => {
-                    audio.currentTime = 0;
-                    updateDurationDisplay();
-                    audio.removeEventListener('seeked', onSeeked);
-                };
-                audio.addEventListener('seeked', onSeeked);
-                audio.currentTime = seekTo;
-            } else {
-                updateDurationDisplay();
-            }
-        }
-        audio.addEventListener('loadedmetadata', () => {
-            if (isSafari) {
-                safariDurationWorkaround();
-            } else {
-                updateDurationDisplay();
-            }
-        });
-        audio.addEventListener('durationchange', updateDurationDisplay);
-        audio.addEventListener('error', () => {
-            durationDisplay.textContent = '--:--';
-        });
-        // Initial update in case metadata is already loaded
-        if (audio.readyState > 0) {
-            updateDurationDisplay();
-        }
         
         // Debug logging and fix audio display
         let errorCount = 0;
