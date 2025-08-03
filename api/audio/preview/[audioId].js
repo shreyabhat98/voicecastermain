@@ -103,7 +103,7 @@ export default function handler(req, res) {
       .header-text {
         font-size: 1.3rem;
         font-weight: 600;
-        margin-bottom: 18px;
+        margin-bottom: 32px;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
       .audio-player {
@@ -205,7 +205,7 @@ export default function handler(req, res) {
         user-select: none;
         position: absolute;
         left: 24px;
-        bottom: 18px;
+        bottom: 6px;
         z-index: 2;
         min-width: 60px;
         text-align: left;
@@ -215,7 +215,7 @@ export default function handler(req, res) {
         align-items: center;
         position: absolute;
         right: 24px;
-        bottom: 18px;
+        bottom: 6px;
         font-size: 0.9rem;
         opacity: 0.8;
         z-index: 2;
@@ -254,6 +254,7 @@ export default function handler(req, res) {
         }
         .header-text {
           font-size: 1rem;
+          margin-bottom: 18px;
         }
         .profile-circle {
           width: 80px;
@@ -262,6 +263,14 @@ export default function handler(req, res) {
         }
         .audio-player {
           min-height: 90px;
+        }
+        .custom-time-display {
+          left: 12px;
+          bottom: 6px;
+        }
+        .audio-info {
+          right: 12px;
+          bottom: 6px;
         }
         .cta-button {
           font-size: 1rem;
