@@ -117,7 +117,7 @@ export default function handler(req, res) {
         height: 120px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.1);
-        margin: 0 auto 20px;
+        margin: 12px auto 12px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -260,6 +260,7 @@ export default function handler(req, res) {
           width: 80px;
           height: 80px;
           font-size: 28px;
+          margin: 8px auto 8px;
         }
         .audio-player {
           min-height: 90px;
