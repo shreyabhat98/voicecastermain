@@ -94,7 +94,7 @@ export default function handler(req, res) {
         text-align: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         position: relative;
-        margin: 20px auto;
+        margin: 40px auto 24px auto;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -232,12 +232,9 @@ export default function handler(req, res) {
         font-size: 1.1rem;
         transition: transform 0.2s, box-shadow 0.2s;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        margin-top: 32px;
-        display: block;
-        width: 100%;
+        margin: 0 auto 0 auto;
+        width: auto;
         max-width: 320px;
-        margin-left: auto;
-        margin-right: auto;
       }
       
       .cta-button:hover {
@@ -248,7 +245,7 @@ export default function handler(req, res) {
       @media (max-width: 768px) {
         .voice-card {
           padding: 18px 6vw 18px 6vw;
-          margin: 12px 0;
+          margin: 16px 0 16px 0;
           min-width: 0;
           min-height: 340px;
         }
@@ -263,6 +260,7 @@ export default function handler(req, res) {
         .cta-button {
           font-size: 1rem;
           padding: 12px 10px;
+          margin-top: 12px;
         }
       }
     </style>
@@ -317,7 +315,9 @@ export default function handler(req, res) {
                 </div>
             </div>
         </div>
-        <a href="/" class="cta-button" style="margin-top: 32px; display: block;">Create your own voice message</a>
+    </div>
+    <div style="width: 100%; display: flex; justify-content: center;">
+      <a href="/" class="cta-button">Create your own voice message</a>
     </div>
     
     <script>
