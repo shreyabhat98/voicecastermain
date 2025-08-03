@@ -111,11 +111,7 @@ export default function handler(req, res) {
       }
       
       .audio-player {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 20px;
-        padding: 30px;
-        margin-bottom: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
       }
       
       .profile-circle {
@@ -200,25 +196,21 @@ export default function handler(req, res) {
         display: none !important;
       }
       
-      .audio-info {
-        display: flex;
-        justify-content: flex-end; /* Move to bottom right */
-        align-items: center;
-        margin-top: 15px;
-        font-size: 0.9rem;
-        opacity: 0.8;
-      }
-      
       .custom-time-display {
         color: white;
         font-size: 0.95em;
         font-variant-numeric: tabular-nums;
-        margin-left: 10px;
         background: rgba(0,0,0,0.18);
         border-radius: 6px;
         padding: 2px 8px;
         letter-spacing: 0.5px;
         user-select: none;
+        position: absolute;
+        left: 24px;
+        bottom: 18px;
+        z-index: 2;
+        min-width: 60px;
+        text-align: left;
       }
       
       .cta-button {
@@ -261,7 +253,7 @@ export default function handler(req, res) {
         <div class="header-text">${pageTitle}</div>
         
         <div class="audio-player">
-            <div class="profile-circle" id="profileCircle" onclick="toggleAudio()">
+            <div class="profile-circle" id="profileCircle" tabindex="0">
                 ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : `
                 <div class="mic-fallback-container">
                   <svg 
@@ -284,19 +276,17 @@ export default function handler(req, res) {
                   </svg>
                 </div>
                 `}
-                <div class="play-overlay">
-                    <div class="play-button"></div>
+                <div class="play-overlay" id="playOverlay">
+                    <div class="play-button" id="playButton"></div>
                 </div>
             </div>
-            
-            <audio controls preload="auto" id="audioPlayer" webkit-playsinline playsinline>
+            <audio preload="auto" id="audioPlayer" webkit-playsinline playsinline style="display:none">
                 <source src="${audio}" type="audio/mpeg">
                 <source src="${audio}" type="audio/mp4">
                 <source src="${audio}" type="audio/wav">
                 <source src="${audio}" type="audio/webm">
-                Your browser does not support the audio element.
             </audio>
-            
+            <span class="custom-time-display" id="customTime">0:00 / --:--</span>
             <div class="audio-info">
                 <div style="display: flex; align-items: center; gap: 4px;">
                   <svg 
@@ -321,7 +311,6 @@ export default function handler(req, res) {
                     />
                   </svg>
                   <span>Voice</span>
-                  <span class="custom-time-display" id="customTime">0:00 / --:--</span>
                 </div>
             </div>
         </div>
@@ -331,8 +320,11 @@ export default function handler(req, res) {
     
     <script>
         const audio = document.getElementById('audioPlayer');
-        const profileCircle = document.querySelector('.profile-circle');
+        const profileCircle = document.getElementById('profileCircle');
+        const playOverlay = document.getElementById('playOverlay');
+        const playButton = document.getElementById('playButton');
         const customTime = document.getElementById('customTime');
+        let isPlaying = false;
         
         // Force load audio immediately when page loads
         window.addEventListener('load', () => {
@@ -428,10 +420,46 @@ export default function handler(req, res) {
             const dur = audio.duration;
             customTime.textContent = \`\${formatTime(cur)} / \${formatTime(dur)}\`;
         }
+        function updatePlayUI() {
+            if (audio.paused) {
+                playOverlay.style.opacity = 1;
+                playButton.style.borderLeft = '20px solid white';
+                playButton.style.borderTop = '12px solid transparent';
+                playButton.style.borderBottom = '12px solid transparent';
+                playButton.style.width = 0;
+                playButton.style.height = 0;
+                profileCircle.style.animation = 'none';
+            } else {
+                playOverlay.style.opacity = 0;
+                playButton.style.borderLeft = '20px solid white';
+                playButton.style.borderTop = '12px solid transparent';
+                playButton.style.borderBottom = '12px solid transparent';
+                playButton.style.width = 0;
+                playButton.style.height = 0;
+                profileCircle.style.animation = 'pulse 1s infinite';
+            }
+        }
+        function toggleAudio() {
+            if (audio.paused) {
+                audio.play().catch(() => {});
+            } else {
+                audio.pause();
+            }
+        }
+        profileCircle.addEventListener('click', toggleAudio);
+        profileCircle.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter') {
+                toggleAudio();
+            }
+        });
+        audio.addEventListener('play', updatePlayUI);
+        audio.addEventListener('pause', updatePlayUI);
+        audio.addEventListener('ended', updatePlayUI);
         audio.addEventListener('timeupdate', updateCustomTime);
         audio.addEventListener('loadedmetadata', updateCustomTime);
         audio.addEventListener('ended', updateCustomTime);
-        // Initial update
+        // Initial UI state
+        updatePlayUI();
         updateCustomTime();
     </script>
 </body>
