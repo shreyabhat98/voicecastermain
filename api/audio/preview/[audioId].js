@@ -240,7 +240,7 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="speaker-icon"></div>
+        <div class="speaker-icon">🔊</div>
         <div class="header-text">${pageTitle}</div>
         
         <div class="audio-player">
@@ -403,6 +403,22 @@ export default function handler(req, res) {
         
         audio.addEventListener('loadedmetadata', () => {
             console.log('Audio metadata loaded');
+            // Safari sometimes reports duration as Infinity or NaN initially
+            if (isSafari && (!audio.duration || !isFinite(audio.duration) || audio.duration === Infinity)) {
+                // Force a seek to a very large time to trigger duration update
+                const fixSafariDuration = () => {
+                    audio.currentTime = 1e10;
+                };
+                audio.addEventListener('timeupdate', function onTimeUpdate() {
+                    // When duration is updated, reset currentTime
+                    if (audio.duration && isFinite(audio.duration) && audio.duration !== Infinity) {
+                        audio.currentTime = 0;
+                        audio.removeEventListener('timeupdate', onTimeUpdate);
+                        console.log('Safari duration fixed:', audio.duration);
+                    }
+                });
+                fixSafariDuration();
+            }
         });
         
         // Add CSS animation
