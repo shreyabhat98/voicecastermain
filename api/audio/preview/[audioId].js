@@ -240,7 +240,7 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="speaker-icon"></div>
+        <div class="speaker-icon">🔊</div>
         <div class="header-text">${pageTitle}</div>
         
         <div class="audio-player">
@@ -272,16 +272,16 @@ export default function handler(req, res) {
                 </div>
             </div>
             
-            <audio controls preload="metadata" id="audioPlayer" webkit-playsinline playsinline>
-                <source src="${audio}" type="audio/wav">
+            <audio controls preload="auto" id="audioPlayer" webkit-playsinline playsinline>
                 <source src="${audio}" type="audio/mpeg">
                 <source src="${audio}" type="audio/mp4">
+                <source src="${audio}" type="audio/wav">
                 <source src="${audio}" type="audio/webm">
                 Your browser does not support the audio element.
             </audio>
             
             <div class="audio-info">
-                <span></span>
+                <span id="durationDisplay">--:--</span>
                 <div style="display: flex; align-items: center; gap: 4px;">
                   <svg 
                     width="16" 
@@ -315,35 +315,36 @@ export default function handler(req, res) {
     <script>
         const audio = document.getElementById('audioPlayer');
         const profileCircle = document.querySelector('.profile-circle');
+        const durationDisplay = document.getElementById('durationDisplay');
         
         // Force load audio immediately when page loads
         window.addEventListener('load', () => {
             audio.load();
-            console.log('Audio loading started on page load');
         });
         
-        // Also load on DOM ready as backup
-        document.addEventListener('DOMContentLoaded', () => {
-            audio.load();
-        });
-        
-        // Safari-specific: Remove crossorigin which can block loading
+        // Safari-specific fixes
         const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         if (isSafari) {
             audio.removeAttribute('crossorigin');
+            
+            // Safari-specific: Fix the "Error" text issue
+            audio.addEventListener('loadedmetadata', () => {
+                // Force Safari to refresh the duration display
+                audio.currentTime = 0;
+            });
+            
+            // Additional Safari fix: ensure metadata loads properly
+            setTimeout(() => {
+                if (audio.readyState === 0) {
+                    audio.load();
+                }
+            }, 1000);
         }
         
         // Simple toggle function
         function toggleAudio() {
             if (audio.paused) {
-                audio.play().catch(err => {
-                    console.log('Play failed:', err);
-                    // If play fails, try loading again then playing
-                    audio.load();
-                    setTimeout(() => {
-                        audio.play().catch(() => {});
-                    }, 500);
-                });
+                audio.play().catch(() => {});
             } else {
                 audio.pause();
             }
@@ -392,51 +393,90 @@ export default function handler(req, res) {
             profileCircle.style.animation = 'none';
         });
         
-        // Debug logging
+        // --- Duration display logic ---
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds === Infinity) return '--:--';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return \`\${m}:\${s.toString().padStart(2, '0')}\`;
+        }
+        function updateDurationDisplay() {
+            let dur = audio.duration;
+            if (isNaN(dur) || dur === Infinity) {
+                durationDisplay.textContent = '--:--';
+            } else {
+                durationDisplay.textContent = formatTime(dur);
+            }
+        }
+        // Safari-specific duration workaround
+        function safariDurationWorkaround() {
+            if (audio.duration === Infinity || isNaN(audio.duration)) {
+                // Try to force duration calculation
+                const seekTo = 1e10;
+                const onSeeked = () => {
+                    audio.currentTime = 0;
+                    updateDurationDisplay();
+                    audio.removeEventListener('seeked', onSeeked);
+                };
+                audio.addEventListener('seeked', onSeeked);
+                audio.currentTime = seekTo;
+            } else {
+                updateDurationDisplay();
+            }
+        }
+        audio.addEventListener('loadedmetadata', () => {
+            if (isSafari) {
+                safariDurationWorkaround();
+            } else {
+                updateDurationDisplay();
+            }
+        });
+        audio.addEventListener('durationchange', updateDurationDisplay);
+        audio.addEventListener('error', () => {
+            durationDisplay.textContent = '--:--';
+        });
+        // Initial update in case metadata is already loaded
+        if (audio.readyState > 0) {
+            updateDurationDisplay();
+        }
+        
+        // Debug logging and fix audio display
+        let errorCount = 0;
+        const maxRetries = 2;
+        
         audio.addEventListener('loadstart', () => {
             console.log('Audio load started');
         });
         
         audio.addEventListener('canplay', () => {
             console.log('Audio can play');
+            errorCount = 0; // Reset error count on success
         });
         
         audio.addEventListener('loadedmetadata', () => {
-            console.log('Audio metadata loaded');
-            // Safari sometimes reports duration as Infinity or NaN initially
-            if (isSafari && (!audio.duration || !isFinite(audio.duration) || audio.duration === Infinity)) {
-                // Force a seek to a very large time to trigger duration update
-                const fixSafariDuration = () => {
-                    audio.currentTime = 1e10;
-                };
-                function onTimeUpdate() {
-                    if (audio.duration && isFinite(audio.duration) && audio.duration !== Infinity) {
-                        audio.currentTime = 0;
-                        audio.removeEventListener('timeupdate', onTimeUpdate);
-                        console.log('Safari duration fixed:', audio.duration);
-                    }
-                }
-                audio.addEventListener('timeupdate', onTimeUpdate);
-                fixSafariDuration();
+            console.log('Audio metadata loaded, duration:', audio.duration);
+            errorCount = 0; // Reset error count on success
+        });
+        
+        audio.addEventListener('error', (e) => {
+            console.error('Audio error:', e);
+            errorCount++;
+            // Only retry if we haven't exceeded max retries
+            if (errorCount <= maxRetries) {
+                // Retry audio load
+                setTimeout(function() {
+                    audio.load();
+                }, 1000);
+            } else {
+                // Max retries reached, giving up
             }
         });
-
-        // Extra Safari fix: re-apply duration fix on play if duration is still broken
-        audio.addEventListener('play', () => {
-            if (isSafari && (!audio.duration || !isFinite(audio.duration) || audio.duration === Infinity)) {
-                const fixSafariDuration = () => {
-                    audio.currentTime = 1e10;
-                };
-                function onTimeUpdate() {
-                    if (audio.duration && isFinite(audio.duration) && audio.duration !== Infinity) {
-                        audio.currentTime = 0;
-                        audio.removeEventListener('timeupdate', onTimeUpdate);
-                        console.log('Safari duration fixed (on play):', audio.duration);
-                    }
-                }
-                audio.addEventListener('timeupdate', onTimeUpdate);
-                fixSafariDuration();
-            }
+        
+        // Force refresh audio element to show proper time
+        audio.addEventListener('loadeddata', () => {
+            console.log('Audio data loaded');
+            // Force refresh the audio controls
+            audio.currentTime = audio.currentTime;
         });
         
         // Add CSS animation
