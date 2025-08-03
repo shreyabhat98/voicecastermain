@@ -11,7 +11,7 @@ export default function handler(req, res) {
   const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}`;
   
   // Use preview image if available, otherwise fallback to placeholder
-  const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=Voice+Message';
+  const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=🎤+Voice+Message';
   
   const html = `
 <!DOCTYPE html>
@@ -21,7 +21,7 @@ export default function handler(req, res) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Required Open Graph tags for audio embedding -->
-    <meta property="og:title" content="Voice Message via VoiceCaster" />
+    <meta property="og:title" content="🎤 Voice Message via VoiceCaster" />
     <meta property="og:type" content="website" />
     <meta property="og:description" content="Listen to this voice message created with VoiceCaster" />
     <meta property="og:url" content="${wrapperUrl}" />
@@ -40,7 +40,7 @@ export default function handler(req, res) {
     
     <!-- Twitter Card tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Voice Message via VoiceCaster" />
+    <meta name="twitter:title" content="🎤 Voice Message via VoiceCaster" />
     <meta name="twitter:description" content="Listen to this voice message created with VoiceCaster" />
     <meta name="twitter:image" content="${previewImageUrl}" />
     
@@ -48,11 +48,11 @@ export default function handler(req, res) {
     <meta property="fc:frame" content="vNext" />
     <meta property="fc:frame:image" content="${previewImageUrl}" />
     <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-    <meta property="fc:frame:button:1" content="Play Audio" />
+    <meta property="fc:frame:button:1" content="🔊 Play Audio" />
     <meta property="fc:frame:button:1:action" content="launch_frame" />
     <meta property="fc:frame:button:1:target" content="${wrapperUrl}" />
     
-    <title>Voice Message via VoiceCaster</title>
+    <title>🎤 Voice Message via VoiceCaster</title>
     
     <style>
       body {
@@ -174,7 +174,7 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="header-text">Voice Message</div>
+        <div class="header-text">🎤 Voice Message</div>
         
         <div class="audio-player">
             <div class="profile-circle" id="profileCircle">
@@ -203,12 +203,11 @@ export default function handler(req, res) {
                 `}
             </div>
             
-            <audio controls preload="metadata" crossorigin="anonymous">
+            <audio controls preload="none" id="audioPlayer" webkit-playsinline playsinline>
                 <source src="${audio}" type="audio/wav">
-                <source src="${audio}" type="audio/webm">
                 <source src="${audio}" type="audio/mpeg">
                 <source src="${audio}" type="audio/mp4">
-                <source src="${audio}" type="audio/ogg">
+                <source src="${audio}" type="audio/webm">
                 Your browser does not support the audio element.
             </audio>
             
@@ -258,37 +257,63 @@ export default function handler(req, res) {
         }
         
         // Auto-play functionality (if allowed by browser)
-        const audio = document.querySelector('audio');
+        const audio = document.getElementById('audioPlayer');
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        let isErrorLooping = false;
         
-        // Add error handling for audio loading
-        audio.addEventListener('error', (e) => {
-            console.error('Audio loading error:', e);
-            // Try to reload the audio element
-            setTimeout(() => {
-                audio.load();
-            }, 1000);
-        });
-        
-        audio.addEventListener('loadstart', () => {
-            console.log('Audio loading started...');
-        });
-        
-        audio.addEventListener('canplay', () => {
-            console.log('Audio can start playing');
-        });
-        
-        // Try to auto-play when page loads
-        audio.addEventListener('loadedmetadata', () => {
-            console.log('Audio metadata loaded');
-            // Most browsers block auto-play, but we can try
-            audio.play().catch((err) => {
-                console.log('Auto-play blocked by browser:', err);
+        if (isSafari) {
+            console.log('Safari detected - using Safari-specific audio handling');
+            
+            // Remove crossorigin for Safari
+            audio.removeAttribute('crossorigin');
+            
+            // Safari requires user interaction first
+            audio.addEventListener('loadstart', () => {
+                console.log('Safari: Audio loading started');
             });
+            
+            // Don't preload on Safari - let user initiate
+            audio.preload = 'none';
+        }
+        
+        // Prevent error loops (especially on Safari)
+        audio.addEventListener('error', (e) => {
+            if (isErrorLooping) return;
+            isErrorLooping = true;
+            console.error('Audio error:', e);
+            
+            if (isSafari) {
+                console.log('Safari audio error - likely needs user interaction first');
+            }
+            
+            // Show user-friendly error message
+            const audioContainer = audio.parentElement;
+            audioContainer.innerHTML =
+                '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.8);">' +
+                '<p>🎵 ' + (isSafari ? 'Tap to play audio' : 'Audio temporarily unavailable') + '</p>' +
+                '<button onclick="window.open(\'' + audio.src + '\', \'_blank\')" ' +
+                'style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; margin-top: 10px; cursor: pointer;">' +
+                '📱 Open Audio File' +
+                '</button>' +
+                '</div>';
         });
         
-        // Add visual feedback when playing
+        // Only add other listeners if no error
+        audio.addEventListener('canplay', () => {
+            console.log('Audio can play');
+            isErrorLooping = false;
+        });
+        
+        audio.addEventListener('loadeddata', () => {
+            console.log('Audio loaded successfully');
+        });
+        
+        // Safari-friendly play handling
         audio.addEventListener('play', () => {
-            document.querySelector('.profile-circle').style.animation = 'pulse 1s infinite';
+            if (!isErrorLooping) {
+                console.log('Audio started playing');
+                document.querySelector('.profile-circle').style.animation = 'pulse 1s infinite';
+            }
         });
         
         audio.addEventListener('pause', () => {
@@ -297,6 +322,19 @@ export default function handler(req, res) {
         
         audio.addEventListener('ended', () => {
             document.querySelector('.profile-circle').style.animation = 'none';
+        });
+        
+        // Force load when user clicks profile circle (Safari workaround)
+        document.querySelector('.profile-circle').addEventListener('click', () => {
+            if (isSafari && audio.readyState === 0) {
+                console.log('Safari: Force loading audio on user interaction');
+                audio.load();
+                setTimeout(() => {
+                    audio.play().catch(err => {
+                        console.log('Safari play failed:', err);
+                    });
+                }, 500);
+            }
         });
         
         // Add CSS animation
