@@ -410,7 +410,7 @@ export async function generateVoiceCardPreview({
   ctx.font = '14px Arial';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'bottom';
-  ctx.fillText('VoiceCaster', canvas.width - 24, bottomY);
+  ctx.fillText('Voice', canvas.width - 24, bottomY);
 
   // Return PNG blob
   return await new Promise<Blob>((resolve) => {

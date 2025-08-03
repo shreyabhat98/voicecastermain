@@ -21,7 +21,7 @@ export default function handler(req, res) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Required Open Graph tags for audio embedding -->
-    <meta property="og:title" content="🎤 Voice Message via VoiceCaster" />
+    <meta property="og:title" content="Voice Message via VoiceCaster" />
     <meta property="og:type" content="website" />
     <meta property="og:description" content="Listen to this voice message created with VoiceCaster" />
     <meta property="og:url" content="${wrapperUrl}" />
@@ -40,7 +40,7 @@ export default function handler(req, res) {
     
     <!-- Twitter Card tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="🎤 Voice Message via VoiceCaster" />
+    <meta name="twitter:title" content="Voice Message via VoiceCaster" />
     <meta name="twitter:description" content="Listen to this voice message created with VoiceCaster" />
     <meta name="twitter:image" content="${previewImageUrl}" />
     
@@ -48,11 +48,11 @@ export default function handler(req, res) {
     <meta property="fc:frame" content="vNext" />
     <meta property="fc:frame:image" content="${previewImageUrl}" />
     <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-    <meta property="fc:frame:button:1" content="🔊 Play Audio" />
+    <meta property="fc:frame:button:1" content="Play Audio" />
     <meta property="fc:frame:button:1:action" content="link" />
-    <meta property="fc:frame:button:1:target" content="${audio}" />
+    <meta property="fc:frame:button:1:target" content="${wrapperUrl}" />
     
-    <title>🎤 Voice Message via VoiceCaster</title>
+    <title>Voice Message via VoiceCaster</title>
     
     <style>
       body {
@@ -118,7 +118,8 @@ export default function handler(req, res) {
       }
       
       .mic-fallback {
-        font-size: 48px;
+        width: 48px;
+        height: 48px;
         color: white;
       }
       
@@ -173,11 +174,33 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="header-text">🎤 Voice Message</div>
+        <div class="header-text">Voice Message</div>
         
         <div class="audio-player">
             <div class="profile-circle" id="profileCircle">
-                ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : '<div class="mic-fallback">🎤</div>'}
+                ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : `
+                <svg 
+                  width="48" 
+                  height="48" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="mic-fallback"
+                >
+                  <path
+                    d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M12 19V22H8V24H16V22H12V19Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                `}
             </div>
             
             <audio controls preload="metadata">
@@ -188,8 +211,31 @@ export default function handler(req, res) {
             </audio>
             
             <div class="audio-info">
-                <span>🔊</span>
-                <span>Voice</span>
+                
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                    style="color: white;"
+                  >
+                    <path
+                      d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
+                      fill="currentColor"
+                    />
+                    <path
+                      d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
+                      fill="currentColor"
+                    />
+                    <path
+                      d="M12 19V22H8V24H16V22H12V19Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  <span>Voice</span>
+                </div>
             </div>
         </div>
         
@@ -200,7 +246,13 @@ export default function handler(req, res) {
         // Function to show mic fallback if profile image fails
         function showMicFallback() {
             const profileCircle = document.getElementById('profileCircle');
-            profileCircle.innerHTML = '<div class="mic-fallback">🎤</div>';
+            if (profileCircle) {
+                profileCircle.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="mic-fallback">' +
+                  '<path d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z" fill="currentColor" />' +
+                  '<path d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z" fill="currentColor" />' +
+                  '<path d="M12 19V22H8V24H16V22H12V19Z" fill="currentColor" />' +
+                '</svg>';
+            }
         }
         
         // Auto-play functionality (if allowed by browser)
