@@ -81,18 +81,6 @@ export default function handler(req, res) {
         justify-content: center;
         align-items: center;
       }
-      .container {
-        max-width: 480px;
-        width: 100%;
-        margin: 40px auto;
-        background: rgba(255,255,255,0.13);
-        border-radius: 28px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-        padding: 36px 28px 32px 28px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
       .voice-card {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 24px;
@@ -100,25 +88,30 @@ export default function handler(req, res) {
         backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.2);
         width: 100%;
+        max-width: 480px;
+        min-width: 280px;
+        min-height: 420px;
         text-align: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         position: relative;
-        margin-bottom: 0;
+        margin: 20px auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
       }
-      
       .header-text {
         font-size: 1.5rem;
         font-weight: 600;
         margin-bottom: 30px;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
-      
       .audio-player {
         position: relative;
         min-height: 180px;
         width: 100%;
+        margin-bottom: 16px;
       }
-      
       .profile-circle {
         width: 120px;
         height: 120px;
@@ -239,6 +232,12 @@ export default function handler(req, res) {
         font-size: 1.1rem;
         transition: transform 0.2s, box-shadow 0.2s;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        margin-top: 32px;
+        display: block;
+        width: 100%;
+        max-width: 320px;
+        margin-left: auto;
+        margin-right: auto;
       }
       
       .cta-button:hover {
@@ -248,23 +247,28 @@ export default function handler(req, res) {
       
       @media (max-width: 768px) {
         .voice-card {
-          padding: 25px;
-          margin: 20px;
+          padding: 18px 6vw 18px 6vw;
+          margin: 12px 0;
+          min-width: 0;
+          min-height: 340px;
         }
         .header-text {
-          font-size: 1.25rem;
+          font-size: 1.1rem;
         }
         .profile-circle {
-          width: 100px;
-          height: 100px;
-          font-size: 40px;
+          width: 90px;
+          height: 90px;
+          font-size: 32px;
+        }
+        .cta-button {
+          font-size: 1rem;
+          padding: 12px 10px;
         }
       }
     </style>
 </head>
 <body>
-    <div class="container">
-      <div class="voice-card">
+    <div class="voice-card">
         <div class="header-text">${pageTitle}</div>
         <div class="audio-player" style="min-height: 180px; position: relative;">
             <div class="profile-circle" id="profileCircle" tabindex="0">
@@ -314,7 +318,6 @@ export default function handler(req, res) {
             </div>
         </div>
         <a href="/" class="cta-button" style="margin-top: 32px; display: block;">Create your own voice message</a>
-      </div>
     </div>
     
     <script>
