@@ -195,6 +195,11 @@ export default function handler(req, res) {
         border-radius: 12px;
       }
       
+      audio::-webkit-media-controls-time-remaining-display,
+      audio::-webkit-media-controls-current-time-display {
+        display: none !important;
+      }
+      
       .audio-info {
         display: flex;
         justify-content: flex-end; /* Move to bottom right */
@@ -202,6 +207,18 @@ export default function handler(req, res) {
         margin-top: 15px;
         font-size: 0.9rem;
         opacity: 0.8;
+      }
+      
+      .custom-time-display {
+        color: white;
+        font-size: 0.95em;
+        font-variant-numeric: tabular-nums;
+        margin-left: 10px;
+        background: rgba(0,0,0,0.18);
+        border-radius: 6px;
+        padding: 2px 8px;
+        letter-spacing: 0.5px;
+        user-select: none;
       }
       
       .cta-button {
@@ -304,6 +321,7 @@ export default function handler(req, res) {
                     />
                   </svg>
                   <span>Voice</span>
+                  <span class="custom-time-display" id="customTime">0:00 / --:--</span>
                 </div>
             </div>
         </div>
@@ -314,6 +332,7 @@ export default function handler(req, res) {
     <script>
         const audio = document.getElementById('audioPlayer');
         const profileCircle = document.querySelector('.profile-circle');
+        const customTime = document.getElementById('customTime');
         
         // Force load audio immediately when page loads
         window.addEventListener('load', () => {
@@ -397,14 +416,23 @@ export default function handler(req, res) {
             console.log('Audio metadata loaded, duration:', audio.duration);
         });
         
-        // Remove error/retry logic that causes reload loop
-        // Remove this block:
-        // let errorCount = 0;
-        // const maxRetries = 2;
-        // audio.addEventListener('error', ...)
-        
-        // Remove forced currentTime refresh on loadeddata
-        // ...existing code...
+        // Custom time display logic
+        function formatTime(seconds) {
+            if (!isFinite(seconds) || seconds < 0) return '--:--';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return \`\${m}:\${s.toString().padStart(2, '0')}\`;
+        }
+        function updateCustomTime() {
+            const cur = audio.currentTime;
+            const dur = audio.duration;
+            customTime.textContent = \`\${formatTime(cur)} / \${formatTime(dur)}\`;
+        }
+        audio.addEventListener('timeupdate', updateCustomTime);
+        audio.addEventListener('loadedmetadata', updateCustomTime);
+        audio.addEventListener('ended', updateCustomTime);
+        // Initial update
+        updateCustomTime();
     </script>
 </body>
 </html>`;
