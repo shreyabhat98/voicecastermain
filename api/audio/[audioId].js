@@ -16,7 +16,7 @@ export default function handler(req, res) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       
       <!-- Required Open Graph tags for audio embedding -->
-      <meta property="og:title" content="🎤 Voice Message via VoiceCaster" />
+      <meta property="og:title" content="Voice Message via VoiceCaster" />
       <meta property="og:type" content="website" />
       <meta property="og:description" content="Listen to this voice message created with VoiceCaster" />
       <meta property="og:url" content="${wrapperUrl}" />
@@ -35,7 +35,7 @@ export default function handler(req, res) {
       
       <!-- Twitter Card tags -->
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="🎤 Voice Message via VoiceCaster" />
+      <meta name="twitter:title" content="Voice Message via VoiceCaster" />
       <meta name="twitter:description" content="Listen to this voice message created with VoiceCaster" />
       <meta name="twitter:image" content="https://${req.headers.host}/api/preview/${audioId}" />
       
@@ -43,14 +43,14 @@ export default function handler(req, res) {
       <meta property="fc:frame" content="vNext" />
       <meta property="fc:frame:image" content="https://${req.headers.host}/api/preview/${audioId}" />
       <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-      <meta property="fc:frame:button:1" content="🔊 Play Audio" />
+      <meta property="fc:frame:button:1" content="Play Audio" />
       <meta property="fc:frame:button:1:action" content="link" />
-      <meta property="fc:frame:button:1:target" content="${audio}" />
+      <meta property="fc:frame:button:1:target" content="${wrapperUrl}" />
       <meta property="fc:frame:button:2" content="Create Voice Message" />
       <meta property="fc:frame:button:2:action" content="link" />
       <meta property="fc:frame:button:2:target" content="https://${req.headers.host}" />
       
-      <title>🎤 Voice Message via VoiceCaster</title>
+      <title>Voice Message via VoiceCaster</title>
       
       <style>
         body {
@@ -212,8 +212,8 @@ export default function handler(req, res) {
   </head>
   <body>
       <div class="voice-card">
-          <div class="speaker-icon">🔊</div>
-          <div class="header-text">🎤 Voice Message</div>
+          <div class="speaker-icon">🔊</div> 
+          <div class="header-text">Voice Message</div>
           
           <div class="audio-player">
               <div class="profile-circle" onclick="toggleAudio()">

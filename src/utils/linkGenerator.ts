@@ -63,7 +63,8 @@ export const shortenUrlAlternative = async (longUrl: string): Promise<string> =>
 
 export const generateShareableLink = async (
   audioBlob: Blob, 
-  previewImageBlob?: Blob
+  previewImageBlob?: Blob,
+  userProfile?: { avatar?: string } // NEW: Accept user profile with avatar
 ): Promise<string> => {
   try {
     console.log('📤 Uploading audio for link generation...');
@@ -89,7 +90,17 @@ export const generateShareableLink = async (
     
     // Create wrapper URL that will show Farcaster frame preview
     const baseUrl = window.location.origin;
-    const wrapperUrl = `${baseUrl}/api/audio/preview/${timestamp}?audio=${encodeURIComponent(audioUrl)}${previewImageUrl ? `&preview=${encodeURIComponent(previewImageUrl)}` : ''}`;
+    let wrapperUrl = `${baseUrl}/api/audio/preview/${timestamp}?audio=${encodeURIComponent(audioUrl)}`;
+    
+    // Add preview image if available
+    if (previewImageUrl) {
+      wrapperUrl += `&preview=${encodeURIComponent(previewImageUrl)}`;
+    }
+    
+    // Add avatar if available
+    if (userProfile?.avatar) {
+      wrapperUrl += `&avatar=${encodeURIComponent(userProfile.avatar)}`;
+    }
     
     console.log('🔗 Generated wrapper URL:', wrapperUrl);
     

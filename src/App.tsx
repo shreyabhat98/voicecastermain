@@ -453,7 +453,8 @@ function App() {
         console.log('✅ Preview image generated, size:', previewImageBlob.size);
         
         // Generate shareable link with preview
-        const shareUrl = await generateShareableLink(audioBlob, previewImageBlob);
+        //const shareUrl = await generateShareableLink(audioBlob, previewImageBlob);
+        const shareUrl = await generateShareableLink(audioBlob, previewImageBlob, userProfile || undefined);
         setGeneratedLink(shareUrl.replace('https://', ''));
         
         // Auto-open Farcaster compose with the link

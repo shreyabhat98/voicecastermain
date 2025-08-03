@@ -2,12 +2,13 @@ export default function handler(req, res) {
   const { audioId } = req.query;
   const { audio } = req.query; // Direct audio URL from Supabase
   const { preview } = req.query; // Preview image URL from Supabase
+  const { avatar } = req.query; // NEW: Profile avatar URL
   
   if (!audio) {
     return res.status(400).json({ error: 'Audio URL required' });
   }
   
-  const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}`;
+  const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}`;
   
   // Use preview image if available, otherwise fallback to placeholder
   const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=🎤+Voice+Message';
@@ -105,6 +106,20 @@ export default function handler(req, res) {
         justify-content: center;
         font-size: 48px;
         border: 3px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .profile-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+      
+      .mic-fallback {
+        font-size: 48px;
+        color: white;
       }
       
       audio {
@@ -161,8 +176,8 @@ export default function handler(req, res) {
         <div class="header-text">🎤 Voice Message</div>
         
         <div class="audio-player">
-            <div class="profile-circle">
-                🎤
+            <div class="profile-circle" id="profileCircle">
+                ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : '<div class="mic-fallback">🎤</div>'}
             </div>
             
             <audio controls preload="metadata">
@@ -182,6 +197,12 @@ export default function handler(req, res) {
     </div>
     
     <script>
+        // Function to show mic fallback if profile image fails
+        function showMicFallback() {
+            const profileCircle = document.getElementById('profileCircle');
+            profileCircle.innerHTML = '<div class="mic-fallback">🎤</div>';
+        }
+        
         // Auto-play functionality (if allowed by browser)
         const audio = document.querySelector('audio');
         

@@ -20,7 +20,7 @@ export async function generateTestVideo(): Promise<Blob> {
     
     mediaRecorder.onstop = () => {
       const videoBlob = new Blob(chunks, { type: 'video/webm' });
-      console.log('✅ TEST video created! Size:', videoBlob.size);
+      console.log('TEST video created! Size:', videoBlob.size);
       resolve(videoBlob);
     };
     
@@ -117,9 +117,9 @@ export async function generateSimpleVoiceVideo({
             profileImage!.onerror = reject;
             profileImage!.src = userProfile.avatar!;
           });
-          console.log('✅ Profile image loaded');
+          console.log('Profile image loaded');
         } catch (error) {
-          console.log('❌ Profile image failed, using fallback');
+          console.log('Profile image failed, using fallback');
           profileImage = null;
         }
       }
@@ -227,7 +227,7 @@ export async function generateSimpleVoiceVideo({
         ctx.font = '14px Arial'; // text-sm
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
-        ctx.fillText('VoiceCaster', canvas.width - 24, bottomY);
+        ctx.fillText('Voice', canvas.width - 24, bottomY);
       };
       
       // Draw initial frame
@@ -266,7 +266,7 @@ export async function generateSimpleVoiceVideo({
       mediaRecorder.onstop = () => {
         audioContext.close();
         const videoBlob = new Blob(chunks, { type: mimeType });
-        console.log('✅ VoiceMessageCard-style video created! Size:', videoBlob.size);
+        console.log('VoiceMessageCard-style video created! Size:', videoBlob.size);
         resolve(videoBlob);
       };
       
@@ -290,7 +290,7 @@ export async function generateSimpleVoiceVideo({
       };
       
       // Start everything
-      console.log('🚀 Starting VoiceMessageCard video recording...');
+      console.log('Starting VoiceMessageCard video recording...');
       mediaRecorder.start(1000);
       audioSource.start(0);
       animateCard();
@@ -306,7 +306,7 @@ export async function generateSimpleVoiceVideo({
       }, actualDuration * 1000);
       
     } catch (error) {
-      console.error('❌ VoiceMessageCard video generation failed:', error);
+      console.error('VoiceMessageCard video generation failed:', error);
       reject(error);
     }
   });
