@@ -81,26 +81,29 @@ export default function handler(req, res) {
         justify-content: center;
         align-items: center;
       }
-      
-      .speaker-icon {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-size: 20px;
-        opacity: 0.7;
+      .container {
+        max-width: 480px;
+        width: 100%;
+        margin: 40px auto;
+        background: rgba(255,255,255,0.13);
+        border-radius: 28px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        padding: 36px 28px 32px 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
-      
       .voice-card {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 24px;
-        padding: 40px;
+        padding: 40px 24px 32px 24px;
         backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        max-width: 400px;
-        width: 90%;
+        width: 100%;
         text-align: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         position: relative;
+        margin-bottom: 0;
       }
       
       .header-text {
@@ -260,7 +263,8 @@ export default function handler(req, res) {
     </style>
 </head>
 <body>
-    <div class="voice-card">
+    <div class="container">
+      <div class="voice-card">
         <div class="header-text">${pageTitle}</div>
         <div class="audio-player" style="min-height: 180px; position: relative;">
             <div class="profile-circle" id="profileCircle" tabindex="0">
@@ -310,9 +314,7 @@ export default function handler(req, res) {
             </div>
         </div>
         <a href="/" class="cta-button" style="margin-top: 32px; display: block;">Create your own voice message</a>
-    </div>
-    <div style="width: 100%; display: flex; justify-content: center;">
-      <a href="/" class="cta-button">Create your own voice message</a>
+      </div>
     </div>
     
     <script>
