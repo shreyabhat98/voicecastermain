@@ -212,6 +212,16 @@ export default function handler(req, res) {
         min-width: 60px;
         text-align: left;
       }
+      .audio-info {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        right: 24px;
+        bottom: 18px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+        z-index: 2;
+      }
       
       .cta-button {
         display: inline-block;
@@ -314,8 +324,9 @@ export default function handler(req, res) {
                 </div>
             </div>
         </div>
-        
-        <a href="/" class="cta-button">Create your own voice message</a>
+    </div>
+    <div style="width: 100%; display: flex; justify-content: center;">
+      <a href="/" class="cta-button">Create your own voice message</a>
     </div>
     
     <script>
