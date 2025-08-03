@@ -55,16 +55,16 @@ export default function handler(req, res) {
     <meta name="twitter:description" content="Listen to this voice message created with VoiceCaster" />
     <meta name="twitter:image" content="${previewImageUrl}" />
     
-   <!-- Farcaster Frame Meta Tags -->
-      <meta property="fc:frame" content="vNext" />
-      <meta property="fc:frame:image" content="https://${req.headers.host}/api/preview/${audioId}" />
-      <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-      <meta property="fc:frame:button:1" content="Play Audio" />
-      <meta property="fc:frame:button:1:action" content="launch_frame" />
-      <meta property="fc:frame:button:1:target" content="${wrapperUrl}" />
-      <meta property="fc:frame:button:2" content="Create Voice Message" />
-      <meta property="fc:frame:button:2:action" content="link" />
-      <meta property="fc:frame:button:2:target" content="https://${req.headers.host}" />
+    <!-- Farcaster Frame Meta Tags -->
+    <meta property="fc:frame" content="vNext" />
+    <meta property="fc:frame:image" content="${previewImageUrl}" />
+    <meta property="fc:frame:image:aspect_ratio" content="1:1" />
+    <meta property="fc:frame:button:1" content="Play Audio" />
+    <meta property="fc:frame:button:1:action" content="launch_frame" />
+    <meta property="fc:frame:button:1:target" content="https://${req.headers.host}" />
+    <meta property="fc:frame:button:2" content="Create Voice Message" />
+    <meta property="fc:frame:button:2:action" content="link" />
+    <meta property="fc:frame:button:2:target" content="https://${req.headers.host}" />
     
     <title>${pageTitle} via VoiceCaster</title>
     
@@ -240,7 +240,7 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="speaker-icon">🔊</div>
+        <div class="speaker-icon"></div>
         <div class="header-text">${pageTitle}</div>
         
         <div class="audio-player">
@@ -272,7 +272,7 @@ export default function handler(req, res) {
                 </div>
             </div>
             
-            <audio controls preload="none" id="audioPlayer" webkit-playsinline playsinline>
+            <audio controls preload="metadata" id="audioPlayer" webkit-playsinline playsinline>
                 <source src="${audio}" type="audio/wav">
                 <source src="${audio}" type="audio/mpeg">
                 <source src="${audio}" type="audio/mp4">
@@ -316,11 +316,33 @@ export default function handler(req, res) {
         const audio = document.getElementById('audioPlayer');
         const profileCircle = document.querySelector('.profile-circle');
         
+        // Force load audio immediately when page loads
+        window.addEventListener('load', () => {
+            audio.load();
+            console.log('Audio loading started on page load');
+        });
+        
+        // Also load on DOM ready as backup
+        document.addEventListener('DOMContentLoaded', () => {
+            audio.load();
+        });
+        
+        // Safari-specific: Remove crossorigin which can block loading
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        if (isSafari) {
+            audio.removeAttribute('crossorigin');
+        }
+        
         // Simple toggle function
         function toggleAudio() {
             if (audio.paused) {
                 audio.play().catch(err => {
                     console.log('Play failed:', err);
+                    // If play fails, try loading again then playing
+                    audio.load();
+                    setTimeout(() => {
+                        audio.play().catch(() => {});
+                    }, 500);
                 });
             } else {
                 audio.pause();
@@ -368,6 +390,19 @@ export default function handler(req, res) {
         
         audio.addEventListener('ended', () => {
             profileCircle.style.animation = 'none';
+        });
+        
+        // Debug logging
+        audio.addEventListener('loadstart', () => {
+            console.log('Audio load started');
+        });
+        
+        audio.addEventListener('canplay', () => {
+            console.log('Audio can play');
+        });
+        
+        audio.addEventListener('loadedmetadata', () => {
+            console.log('Audio metadata loaded');
         });
         
         // Add CSS animation
