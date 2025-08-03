@@ -113,6 +113,7 @@ export default function handler(req, res) {
       
       .audio-player {
         position: relative;
+        min-height: 180px;
       }
       
       .profile-circle {
@@ -216,7 +217,6 @@ export default function handler(req, res) {
       
       .audio-info {
         display: flex;
-        justify-content: flex-end;
         align-items: center;
         position: absolute;
         right: 24px;
@@ -293,12 +293,6 @@ export default function handler(req, res) {
                     <div class="play-button" id="playButton"></div>
                 </div>
             </div>
-            <audio preload="auto" id="audioPlayer" webkit-playsinline playsinline style="display:none">
-                <source src="${audio}" type="audio/mpeg">
-                <source src="${audio}" type="audio/mp4">
-                <source src="${audio}" type="audio/wav">
-                <source src="${audio}" type="audio/webm">
-            </audio>
             <span class="custom-time-display" id="customTime">0:00 / --:--</span>
             <div class="audio-info">
                 <div style="display: flex; align-items: center; gap: 4px;">
