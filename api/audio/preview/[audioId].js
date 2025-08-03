@@ -11,7 +11,7 @@ export default function handler(req, res) {
   const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}`;
   
   // Use preview image if available, otherwise fallback to placeholder
-  const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=🎤+Voice+Message';
+  const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=Voice+Message';
   
   const html = `
 <!DOCTYPE html>
@@ -48,11 +48,11 @@ export default function handler(req, res) {
     <meta property="fc:frame" content="vNext" />
     <meta property="fc:frame:image" content="${previewImageUrl}" />
     <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-    <meta property="fc:frame:button:1" content="Play Audio" />
+    <meta property="fc:frame:button:1" content="🔊 Play Audio" />
     <meta property="fc:frame:button:1:action" content="link" />
     <meta property="fc:frame:button:1:target" content="${wrapperUrl}" />
     
-    <title>Voice Message via VoiceCaster</title>
+    <title>🎤 Voice Message via VoiceCaster</title>
     
     <style>
       body {
@@ -203,15 +203,17 @@ export default function handler(req, res) {
                 `}
             </div>
             
-            <audio controls preload="metadata">
+            <audio controls preload="metadata" crossorigin="anonymous">
                 <source src="${audio}" type="audio/wav">
                 <source src="${audio}" type="audio/webm">
+                <source src="${audio}" type="audio/mpeg">
                 <source src="${audio}" type="audio/mp4">
+                <source src="${audio}" type="audio/ogg">
                 Your browser does not support the audio element.
             </audio>
             
             <div class="audio-info">
-                
+                <span></span>
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <svg 
                     width="16" 
@@ -258,11 +260,29 @@ export default function handler(req, res) {
         // Auto-play functionality (if allowed by browser)
         const audio = document.querySelector('audio');
         
+        // Add error handling for audio loading
+        audio.addEventListener('error', (e) => {
+            console.error('Audio loading error:', e);
+            // Try to reload the audio element
+            setTimeout(() => {
+                audio.load();
+            }, 1000);
+        });
+        
+        audio.addEventListener('loadstart', () => {
+            console.log('Audio loading started...');
+        });
+        
+        audio.addEventListener('canplay', () => {
+            console.log('Audio can start playing');
+        });
+        
         // Try to auto-play when page loads
         audio.addEventListener('loadedmetadata', () => {
+            console.log('Audio metadata loaded');
             // Most browsers block auto-play, but we can try
-            audio.play().catch(() => {
-                console.log('Auto-play blocked by browser');
+            audio.play().catch((err) => {
+                console.log('Auto-play blocked by browser:', err);
             });
         });
         
@@ -272,6 +292,10 @@ export default function handler(req, res) {
         });
         
         audio.addEventListener('pause', () => {
+            document.querySelector('.profile-circle').style.animation = 'none';
+        });
+        
+        audio.addEventListener('ended', () => {
             document.querySelector('.profile-circle').style.animation = 'none';
         });
         
