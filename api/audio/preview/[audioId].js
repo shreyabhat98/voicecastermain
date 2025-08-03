@@ -101,6 +101,7 @@ export default function handler(req, res) {
         text-align: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         position: relative;
+        margin-bottom: 32px;
       }
       
       .header-text {
@@ -213,6 +214,18 @@ export default function handler(req, res) {
         text-align: left;
       }
       
+      .audio-info {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        position: absolute;
+        right: 24px;
+        bottom: 18px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+        z-index: 2;
+      }
+      
       .cta-button {
         display: inline-block;
         background: white;
@@ -224,6 +237,7 @@ export default function handler(req, res) {
         font-size: 1.1rem;
         transition: transform 0.2s, box-shadow 0.2s;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        margin-top: 0;
       }
       
       .cta-button:hover {
@@ -251,7 +265,6 @@ export default function handler(req, res) {
     <div class="voice-card">
         <div class="speaker-icon"></div>
         <div class="header-text">${pageTitle}</div>
-        
         <div class="audio-player">
             <div class="profile-circle" id="profileCircle" tabindex="0">
                 ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : `
@@ -314,8 +327,9 @@ export default function handler(req, res) {
                 </div>
             </div>
         </div>
-        
-        <a href="/" class="cta-button">Create your own voice message</a>
+    </div>
+    <div style="width: 100%; display: flex; justify-content: center;">
+      <a href="/" class="cta-button">Create your own voice message</a>
     </div>
     
     <script>

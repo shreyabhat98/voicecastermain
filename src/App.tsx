@@ -80,7 +80,7 @@ const VoiceMessageCard = ({
         <p className="text-lg font-medium"></p>
       </div>
       <div className="relative">
-        <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
+        <div className="relative w-32 h-32 mx-auto flex items-center justify-center group">
           {/* Avatar or fallback */}
           <div className="flex items-center justify-center w-20 h-20 mx-auto">
             {(!imgError && userProfile?.avatar) ? (
@@ -114,19 +114,27 @@ const VoiceMessageCard = ({
               </svg>
             )}
           </div>
-          {/* Play/Pause button overlay */}
+          {/* Play/Pause button overlay - custom style */}
+          <div
+            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${isPlaying ? 'opacity-0' : 'opacity-100 group-hover:opacity-100'}`}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div
+              className="w-0 h-0 border-l-[24px] border-l-white border-y-[16px] border-y-transparent ml-1 drop-shadow-lg"
+              style={{ pointerEvents: 'auto' }}
+            ></div>
+          </div>
           <button
             onClick={onPlayPause}
             className="absolute inset-0 flex items-center justify-center focus:outline-none"
-            style={{ background: 'transparent', border: 'none' }}
+            style={{ background: 'transparent', border: 'none', zIndex: 10 }}
+            aria-label={isPlaying ? 'Pause' : 'Play'}
           >
-            {isPlaying ? (
+            {isPlaying && (
               <div className="flex space-x-1">
                 <div className="w-1.5 h-6 bg-white rounded-full"></div>
                 <div className="w-1.5 h-6 bg-white rounded-full"></div>
               </div>
-            ) : (
-              <div className="w-0 h-0 border-l-[12px] border-l-white border-y-[8px] border-y-transparent ml-1"></div>
             )}
           </button>
         </div>
