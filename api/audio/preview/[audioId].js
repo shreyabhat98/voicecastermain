@@ -197,7 +197,7 @@ export default function handler(req, res) {
       
       .audio-info {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end; /* Move to bottom right */
         align-items: center;
         margin-top: 15px;
         font-size: 0.9rem;
@@ -240,7 +240,7 @@ export default function handler(req, res) {
 </head>
 <body>
     <div class="voice-card">
-        <div class="speaker-icon">🔊</div>
+        <div class="speaker-icon"></div>
         <div class="header-text">${pageTitle}</div>
         
         <div class="audio-player">
@@ -385,53 +385,26 @@ export default function handler(req, res) {
         });
         
         // Debug logging and fix audio display
-        let errorCount = 0;
-        const maxRetries = 2;
-        
         audio.addEventListener('loadstart', () => {
             console.log('Audio load started');
         });
         
         audio.addEventListener('canplay', () => {
             console.log('Audio can play');
-            errorCount = 0; // Reset error count on success
         });
         
         audio.addEventListener('loadedmetadata', () => {
             console.log('Audio metadata loaded, duration:', audio.duration);
-            errorCount = 0; // Reset error count on success
         });
         
-        audio.addEventListener('error', (e) => {
-            console.error('Audio error:', e);
-            errorCount++;
-            // Only retry if we haven't exceeded max retries
-            if (errorCount <= maxRetries) {
-                // Retry audio load
-                setTimeout(function() {
-                    audio.load();
-                }, 1000);
-            } else {
-                // Max retries reached, giving up
-            }
-        });
+        // Remove error/retry logic that causes reload loop
+        // Remove this block:
+        // let errorCount = 0;
+        // const maxRetries = 2;
+        // audio.addEventListener('error', ...)
         
-        // Force refresh audio element to show proper time
-        audio.addEventListener('loadeddata', () => {
-            console.log('Audio data loaded');
-            // Force refresh the audio controls
-            audio.currentTime = audio.currentTime;
-        });
-        
-        // Add CSS animation
-        const style = document.createElement('style');
-        style.textContent = \`
-            @keyframes pulse {
-                0%, 100% { transform: scale(1); opacity: 1; }
-                50% { transform: scale(1.05); opacity: 0.8; }
-            }
-        \`;
-        document.head.appendChild(style);
+        // Remove forced currentTime refresh on loadeddata
+        // ...existing code...
     </script>
 </body>
 </html>`;
