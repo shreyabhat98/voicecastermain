@@ -90,7 +90,7 @@ export default function handler(req, res) {
         width: 90%;
         max-width: 420px;
         min-width: 220px;
-        min-height: 320px;
+        min-height: 220px;
         text-align: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         position: relative;
@@ -112,6 +112,10 @@ export default function handler(req, res) {
         min-height: 140px;
         width: 100%;
         margin-bottom: 12px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
       }
       .profile-circle {
         width: 120px;
@@ -249,7 +253,7 @@ export default function handler(req, res) {
           padding: 44px 3vw 12px 3vw;
           margin: 10px 3vw 10px 3vw;
           min-width: 0;
-          min-height: 220px;
+          min-height: 140px;
           max-width: 98vw;
           border-radius: 18px;
         }
