@@ -103,7 +103,7 @@ export default function handler(req, res) {
       .header-text {
         font-size: 1.3rem;
         font-weight: 600;
-        margin-bottom: 18px;
+        margin-bottom: 32px;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         text-align: center;
       }
