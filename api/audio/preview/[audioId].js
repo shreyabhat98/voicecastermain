@@ -523,6 +523,15 @@ export default function handler(req, res) {
         // audio.addEventListener('ended', updatePlayUI); // now handled above
         audio.addEventListener('timeupdate', updateCustomTime);
         audio.addEventListener('ended', updateCustomTime);
+        // Only show time after first play
+        let hasPlayed = false;
+        audio.addEventListener('play', () => {
+            if (!hasPlayed) {
+                customTime.style.display = 'inline-block';
+                updateCustomTime();
+                hasPlayed = true;
+            }
+        });
         // Initial UI state
         updatePlayUI();
     </script>
