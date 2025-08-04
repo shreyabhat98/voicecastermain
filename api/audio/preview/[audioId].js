@@ -112,17 +112,18 @@ export default function handler(req, res) {
         min-height: 140px;
         width: 100%;
         margin-bottom: 12px;
-        height: 100%;
+        height: 180px;
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
+        justify-content: space-between;
+        align-items: center;
       }
       .profile-circle {
         width: 120px;
         height: 120px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.1);
-        margin: 32px auto 8px;
+        margin: 0 auto;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -261,14 +262,15 @@ export default function handler(req, res) {
           font-size: 1rem;
           margin-bottom: 18px;
         }
+        .audio-player {
+          min-height: 90px;
+          height: 120px;
+        }
         .profile-circle {
           width: 80px;
           height: 80px;
           font-size: 28px;
-          margin: 20px auto 6px;
-        }
-        .audio-player {
-          min-height: 90px;
+          margin: 0 auto;
         }
         .custom-time-display {
           left: 12px;
