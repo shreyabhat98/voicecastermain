@@ -360,6 +360,7 @@ export default function handler(req, res) {
         const customTime = document.getElementById('customTime');
         let isPlaying = false;
         let metadataLoaded = false;
+        let hasInteracted = false;
         
         // Force load audio immediately when page loads
         window.addEventListener('load', () => {
@@ -460,14 +461,19 @@ export default function handler(req, res) {
             const dur = audio.duration;
             customTime.textContent = \`\${formatTime(cur)} / \${formatTime(dur)}\`;
         }
-        function showPlaceholderTime() {
-            if (!metadataLoaded) {
-                customTime.textContent = '\u2014 / \u2014'; // — / —
+        function showTimeDisplay() {
+            if (!hasInteracted) {
                 customTime.style.display = 'inline-block';
+                updateCustomTime();
+                hasInteracted = true;
             }
         }
-        // Show placeholder if metadata not loaded after 1s
-        setTimeout(showPlaceholderTime, 1000);
+        profileCircle.addEventListener('click', showTimeDisplay);
+        profileCircle.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter') {
+                showTimeDisplay();
+            }
+        });
         audio.addEventListener('loadedmetadata', () => {
             metadataLoaded = true;
             updateCustomTime();
@@ -480,6 +486,7 @@ export default function handler(req, res) {
             updateCustomTime();
             customTime.style.display = 'inline-block';
         }
+        // In updatePlayUI, always update time if visible
         function updatePlayUI() {
             if (audio.paused) {
                 playOverlay.style.opacity = 1;
@@ -497,6 +504,7 @@ export default function handler(req, res) {
                 playButton.style.width = 0;
                 playButton.style.height = 0;
                 profileCircle.style.animation = 'pulse 1s infinite';
+                showTimeDisplay();
             }
         }
         function toggleAudio() {
