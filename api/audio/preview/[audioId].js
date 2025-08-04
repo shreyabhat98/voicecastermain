@@ -411,6 +411,9 @@ export default function handler(req, res) {
         
         audio.addEventListener('ended', () => {
             profileCircle.style.animation = 'none';
+            audio.currentTime = 0;
+            updatePlayUI();
+            updateCustomTime();
         });
         
         // Debug logging and fix audio display
@@ -440,11 +443,10 @@ export default function handler(req, res) {
         }
         // Show duration as soon as metadata is available, even before play
         audio.addEventListener('loadedmetadata', updateCustomTime);
+        audio.addEventListener('canplay', updateCustomTime);
         // If metadata is already loaded (e.g. from cache), update immediately
         if (audio.readyState > 0 && isFinite(audio.duration)) {
             updateCustomTime();
-        } else {
-            customTime.textContent = '0:00 / --:--';
         }
         function updatePlayUI() {
             if (audio.paused) {
@@ -480,7 +482,7 @@ export default function handler(req, res) {
         });
         audio.addEventListener('play', updatePlayUI);
         audio.addEventListener('pause', updatePlayUI);
-        audio.addEventListener('ended', updatePlayUI);
+        // audio.addEventListener('ended', updatePlayUI); // now handled above
         audio.addEventListener('timeupdate', updateCustomTime);
         audio.addEventListener('ended', updateCustomTime);
         // Initial UI state
