@@ -87,14 +87,14 @@ export default function handler(req, res) {
         padding: 48px 16px 24px 16px;
         backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        width: calc(100% - 32px);
+        width: 100%;
         max-width: 420px;
         min-width: 220px;
         min-height: 320px;
         text-align: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         position: relative;
-        margin: 32px auto 20px auto;
+        margin: 32px 16px 20px 16px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -117,7 +117,7 @@ export default function handler(req, res) {
         height: 120px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.1);
-        margin: 12px auto 12px;
+        margin: 32px auto 8px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -246,7 +246,7 @@ export default function handler(req, res) {
       @media (max-width: 768px) {
         .voice-card {
           padding: 28px 3vw 12px 3vw;
-          margin: 10px 3vw 10px 3vw;
+          margin: 10px 4vw 10px 4vw;
           min-width: 0;
           min-height: 220px;
           max-width: 98vw;
@@ -260,7 +260,7 @@ export default function handler(req, res) {
           width: 80px;
           height: 80px;
           font-size: 28px;
-          margin: 8px auto 8px;
+          margin: 20px auto 6px;
         }
         .audio-player {
           min-height: 90px;
@@ -438,6 +438,14 @@ export default function handler(req, res) {
             const dur = audio.duration;
             customTime.textContent = \`\${formatTime(cur)} / \${formatTime(dur)}\`;
         }
+        // Show duration as soon as metadata is available, even before play
+        audio.addEventListener('loadedmetadata', updateCustomTime);
+        // If metadata is already loaded (e.g. from cache), update immediately
+        if (audio.readyState > 0 && isFinite(audio.duration)) {
+            updateCustomTime();
+        } else {
+            customTime.textContent = '0:00 / --:--';
+        }
         function updatePlayUI() {
             if (audio.paused) {
                 playOverlay.style.opacity = 1;
@@ -474,11 +482,9 @@ export default function handler(req, res) {
         audio.addEventListener('pause', updatePlayUI);
         audio.addEventListener('ended', updatePlayUI);
         audio.addEventListener('timeupdate', updateCustomTime);
-        audio.addEventListener('loadedmetadata', updateCustomTime);
         audio.addEventListener('ended', updateCustomTime);
         // Initial UI state
         updatePlayUI();
-        updateCustomTime();
     </script>
 </body>
 </html>`;
