@@ -365,8 +365,6 @@ export default function handler(req, res) {
         // Force load audio immediately when page loads
         window.addEventListener('load', () => {
             audio.load();
-              // Try to update the time display after loading
-            setTimeout(updateCustomTime, 100); // Give a short delay for metadata to load if cached
         });
         
         // Safari-specific fixes (minimal, no seeking hack)
