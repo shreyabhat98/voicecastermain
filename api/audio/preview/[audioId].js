@@ -87,7 +87,7 @@ export default function handler(req, res) {
         padding: 48px 16px 24px 16px;
         backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        width: auto;
+        width: 90%;
         max-width: 420px;
         min-width: 220px;
         min-height: 320px;
@@ -246,12 +246,11 @@ export default function handler(req, res) {
       @media (max-width: 768px) {
         .voice-card {
           padding: 28px 3vw 12px 3vw;
-          margin: 10px 5vw 10px 5vw;
+          margin: 10px 3vw 10px 3vw;
           min-width: 0;
           min-height: 220px;
           max-width: 98vw;
           border-radius: 18px;
-          width: auto;
         }
         .header-text {
           font-size: 1rem;
