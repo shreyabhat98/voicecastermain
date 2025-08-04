@@ -115,8 +115,12 @@ export default function handler(req, res) {
         height: 180px;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
+      }
+      .profile-spacer {
+        height: 60px;
+        flex-shrink: 0;
       }
       .profile-circle {
         width: 120px;
@@ -274,16 +278,19 @@ export default function handler(req, res) {
         }
         .custom-time-display {
           left: 12px;
-          bottom: 6px;
+          bottom: 4px;
         }
         .audio-info {
           right: 12px;
-          bottom: 6px;
+          bottom: 4px;
         }
         .cta-button {
           font-size: 1rem;
           padding: 12px 10px;
           margin-top: 12px;
+        }
+        .profile-spacer {
+          height: 24px;
         }
       }
     </style>
@@ -292,6 +299,7 @@ export default function handler(req, res) {
         <div class="header-text" style="margin-bottom: 18px; text-align: center;">${pageTitle}</div>
         <div class="voice-card">
             <div class="audio-player" style="min-height: 180px; position: relative;">
+                <div class="profile-spacer"></div>
                 <div class="profile-circle" id="profileCircle" tabindex="0">
                     ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : `
                     <div class="mic-fallback-container">
@@ -319,7 +327,7 @@ export default function handler(req, res) {
                     <source src="${audio}" type="audio/wav">
                     <source src="${audio}" type="audio/webm">
                 </audio>
-                <span class="custom-time-display" id="customTime">0:00 / --:--</span>
+                <span class="custom-time-display" id="customTime"></span>
                 <div class="audio-info">
                     <div style="display: flex; align-items: center; gap: 4px;">
                       <svg 
