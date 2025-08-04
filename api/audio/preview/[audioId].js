@@ -115,7 +115,7 @@ export default function handler(req, res) {
         height: 180px;
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
+        justify-content: flex-start;
         align-items: center;
       }
       .profile-spacer {
@@ -327,7 +327,7 @@ export default function handler(req, res) {
                     <source src="${audio}" type="audio/wav">
                     <source src="${audio}" type="audio/webm">
                 </audio>
-                <span class="custom-time-display" id="customTime"></span>
+                <span class="custom-time-display" id="customTime">0:00</span>
                 <div class="audio-info">
                     <div style="display: flex; align-items: center; gap: 4px;">
                       <svg 
