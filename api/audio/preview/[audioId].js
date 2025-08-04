@@ -219,6 +219,7 @@ export default function handler(req, res) {
         z-index: 2;
         min-width: 60px;
         text-align: left;
+        display: none;
       }
       .audio-info {
         display: flex;
@@ -327,7 +328,7 @@ export default function handler(req, res) {
                     <source src="${audio}" type="audio/wav">
                     <source src="${audio}" type="audio/webm">
                 </audio>
-                <span class="custom-time-display" id="customTime">0:00</span>
+                <span class="custom-time-display" id="customTime"></span>
                 <div class="audio-info">
                     <div style="display: flex; align-items: center; gap: 4px;">
                       <svg 
@@ -459,11 +460,15 @@ export default function handler(req, res) {
             customTime.textContent = \`\${formatTime(cur)} / \${formatTime(dur)}\`;
         }
         // Show duration as soon as metadata is available, even before play
-        audio.addEventListener('loadedmetadata', updateCustomTime);
+        audio.addEventListener('loadedmetadata', () => {
+            updateCustomTime();
+            customTime.style.display = 'inline-block';
+        });
         audio.addEventListener('canplay', updateCustomTime);
-        // If metadata is already loaded (e.g. from cache), update immediately
+        // If metadata is already loaded (e.g. from cache), update immediately and show
         if (audio.readyState > 0 && isFinite(audio.duration)) {
             updateCustomTime();
+            customTime.style.display = 'inline-block';
         }
         function updatePlayUI() {
             if (audio.paused) {
