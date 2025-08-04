@@ -328,7 +328,7 @@ export default function handler(req, res) {
                     <source src="${audio}" type="audio/wav">
                     <source src="${audio}" type="audio/webm">
                 </audio>
-                <span class="custom-time-display" id="customTime"></span>
+                <span class="custom-time-display" id="customTime">&mdash; / &mdash;</span>
                 <div class="audio-info">
                     <div style="display: flex; align-items: center; gap: 4px;">
                       <svg 
@@ -359,6 +359,7 @@ export default function handler(req, res) {
         const playButton = document.getElementById('playButton');
         const customTime = document.getElementById('customTime');
         let isPlaying = false;
+        let metadataLoaded = false;
         
         // Force load audio immediately when page loads
         window.addEventListener('load', () => {
@@ -459,14 +460,23 @@ export default function handler(req, res) {
             const dur = audio.duration;
             customTime.textContent = \`\${formatTime(cur)} / \${formatTime(dur)}\`;
         }
-        // Show duration as soon as metadata is available, even before play
+        function showPlaceholderTime() {
+            if (!metadataLoaded) {
+                customTime.textContent = '\u2014 / \u2014'; // — / —
+                customTime.style.display = 'inline-block';
+            }
+        }
+        // Show placeholder if metadata not loaded after 1s
+        setTimeout(showPlaceholderTime, 1000);
         audio.addEventListener('loadedmetadata', () => {
+            metadataLoaded = true;
             updateCustomTime();
             customTime.style.display = 'inline-block';
         });
         audio.addEventListener('canplay', updateCustomTime);
         // If metadata is already loaded (e.g. from cache), update immediately and show
         if (audio.readyState > 0 && isFinite(audio.duration)) {
+            metadataLoaded = true;
             updateCustomTime();
             customTime.style.display = 'inline-block';
         }
