@@ -82,7 +82,7 @@ export default function handler(req, res) {
         align-items: center;
       }
       .voice-card {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.1); 
         border-radius: 24px;
         padding: 48px 16px 24px 16px;
         backdrop-filter: blur(16px);
@@ -103,8 +103,9 @@ export default function handler(req, res) {
       .header-text {
         font-size: 1.3rem;
         font-weight: 600;
-        margin-bottom: 32px;
+        margin-bottom: 18px;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        text-align: center;
       }
       .audio-player {
         position: relative;
@@ -282,59 +283,59 @@ export default function handler(req, res) {
     </style>
 </head>
 <body>
-    <div class="voice-card">
-        <div class="header-text">${pageTitle}</div>
-        <div class="audio-player" style="min-height: 180px; position: relative;">
-            <div class="profile-circle" id="profileCircle" tabindex="0">
-                ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : `
-                <div class="mic-fallback-container">
-                  <svg 
-                    width="48" 
-                    height="48" 
-                    viewBox="0 0 24 24" 
-                    fill="white" 
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mic-fallback"
-                  >
-                    <path d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12 V4C14 2.9 13.1 2 12 2Z"/>
-                    <path d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"/>
-                    <path d="M12 19V22H8V24H16V22H12V19Z"/>
-                  </svg>
+        <div class="header-text" style="margin-bottom: 18px; text-align: center;">${pageTitle}</div>
+        <div class="voice-card">
+            <div class="audio-player" style="min-height: 180px; position: relative;">
+                <div class="profile-circle" id="profileCircle" tabindex="0">
+                    ${avatar ? `<img src="${avatar}" alt="Profile" class="profile-image" onerror="showMicFallback()" />` : `
+                    <div class="mic-fallback-container">
+                      <svg 
+                        width="48" 
+                        height="48" 
+                        viewBox="0 0 24 24" 
+                        fill="white" 
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="mic-fallback"
+                      >
+                        <path d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12 V4C14 2.9 13.1 2 12 2Z"/>
+                        <path d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"/>
+                        <path d="M12 19V22H8V24H16V22H12V19Z"/>
+                      </svg>
+                    </div>
+                    `}
+                    <div class="play-overlay" id="playOverlay">
+                        <div class="play-button" id="playButton"></div>
+                    </div>
                 </div>
-                `}
-                <div class="play-overlay" id="playOverlay">
-                    <div class="play-button" id="playButton"></div>
-                </div>
-            </div>
-            <audio preload="auto" id="audioPlayer" webkit-playsinline playsinline style="display:none">
-                <source src="${audio}" type="audio/mpeg">
-                <source src="${audio}" type="audio/mp4">
-                <source src="${audio}" type="audio/wav">
-                <source src="${audio}" type="audio/webm">
-            </audio>
-            <span class="custom-time-display" id="customTime">0:00 / --:--</span>
-            <div class="audio-info">
-                <div style="display: flex; align-items: center; gap: 4px;">
-                  <svg 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                    style="color: white;"
-                  >
-                    <path d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z" fill="currentColor"/>
-                    <path d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z" fill="currentColor"/>
-                    <path d="M12 19V22H8V24H16V22H12V19Z" fill="currentColor"/>
-                  </svg>
-                  <span>Voice</span>
+                <audio preload="auto" id="audioPlayer" webkit-playsinline playsinline style="display:none">
+                    <source src="${audio}" type="audio/mpeg">
+                    <source src="${audio}" type="audio/mp4">
+                    <source src="${audio}" type="audio/wav">
+                    <source src="${audio}" type="audio/webm">
+                </audio>
+                <span class="custom-time-display" id="customTime">0:00 / --:--</span>
+                <div class="audio-info">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                      <svg 
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        xmlns="http://www.w3.org/2000/svg"
+                        style="color: white;"
+                      >
+                        <path d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z" fill="currentColor"/>
+                        <path d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z" fill="currentColor"/>
+                        <path d="M12 19V22H8V24H16V22H12V19Z" fill="currentColor"/>
+                      </svg>
+                      <span>Voice</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div style="width: 100%; display: flex; justify-content: center;">
-      <a href="/" class="cta-button">Create your own voice message</a>
-    </div>
+        <div style="width: 100%; display: flex; justify-content: center;">
+          <a href="/" class="cta-button">Create your own voice message</a>
+        </div>
     
     <script>
         const audio = document.getElementById('audioPlayer');
