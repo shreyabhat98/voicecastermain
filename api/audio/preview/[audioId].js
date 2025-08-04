@@ -87,14 +87,14 @@ export default function handler(req, res) {
         padding: 48px 16px 24px 16px;
         backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        width: 100%;
+        width: auto;
         max-width: 420px;
         min-width: 220px;
         min-height: 320px;
         text-align: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         position: relative;
-        margin: 32px 16px 20px 16px;
+        margin: 32px auto 20px auto;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -246,11 +246,12 @@ export default function handler(req, res) {
       @media (max-width: 768px) {
         .voice-card {
           padding: 28px 3vw 12px 3vw;
-          margin: 10px 4vw 10px 4vw;
+          margin: 10px 5vw 10px 5vw;
           min-width: 0;
           min-height: 220px;
           max-width: 98vw;
           border-radius: 18px;
+          width: auto;
         }
         .header-text {
           font-size: 1rem;
@@ -347,6 +348,8 @@ export default function handler(req, res) {
         // Force load audio immediately when page loads
         window.addEventListener('load', () => {
             audio.load();
+              // Try to update the time display after loading
+            setTimeout(updateCustomTime, 100); // Give a short delay for metadata to load if cached
         });
         
         // Safari-specific fixes (minimal, no seeking hack)
