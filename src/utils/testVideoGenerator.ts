@@ -65,7 +65,7 @@ export async function generateTestVideo(): Promise<Blob> {
 // UPDATED - Matches VoiceMessageCard UI exactly
 export async function generateSimpleVoiceVideo({
   audioBlob,
- // duration,
+  //duration,
   userProfile
 }: {
   audioBlob: Blob;
@@ -93,6 +93,17 @@ export async function generateSimpleVoiceVideo({
     try {
       console.log('🎬 Creating video with VoiceMessageCard UI...');
       
+      // Load the mic.svg as an image FIRST
+      const micImage = new Image();
+      micImage.src = '/mic.svg';
+      await new Promise((resolveImage) => {
+        micImage.onload = () => resolveImage(null);
+        micImage.onerror = () => {
+          console.warn('Failed to load mic.svg, will use fallback');
+          resolveImage(null);
+        };
+      });
+      
       // Setup canvas - match your card proportions
       const ctx = canvas.getContext('2d')!;
       canvas.width = 400;  // Adjusted for card proportions
@@ -112,9 +123,9 @@ export async function generateSimpleVoiceVideo({
         try {
           profileImage = new Image();
           profileImage.crossOrigin = 'anonymous';
-          await new Promise((resolve, reject) => {
-            profileImage!.onload = resolve;
-            profileImage!.onerror = reject;
+          await new Promise((resolveProfile, rejectProfile) => {
+            profileImage!.onload = () => resolveProfile(null);
+            profileImage!.onerror = () => rejectProfile(null);
             profileImage!.src = userProfile.avatar!;
           });
           console.log('Profile image loaded');
@@ -197,37 +208,53 @@ export async function generateSimpleVoiceVideo({
           ctx.arc(centerX, centerY, 40 * pulseScale, 0, Math.PI * 2);
           ctx.stroke();
         } else {
+          // Draw SVG-style microphone instead of emoji
           ctx.save();
           ctx.translate(centerX, centerY);
           ctx.scale(pulseScale, pulseScale);
           ctx.fillStyle = 'white';
-          ctx.font = '48px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('🎤', 0, 0);
+          
+          // Draw mic capsule
+          ctx.fillRect(-6, -12, 12, 16);
+          ctx.beginPath();
+          ctx.roundRect(-6, -12, 12, 16, 4);
+          ctx.fill();
+          
+          // Draw mic stand/arc
+          ctx.strokeStyle = 'white';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, 18, 0.2 * Math.PI, 0.8 * Math.PI);
+          ctx.stroke();
+          
+          // Draw mic base
+          ctx.fillRect(-6, 15, 12, 3);
+          
           ctx.restore();
         }
         
         // Bottom section - time and controls
         const bottomY = canvas.height - 40;
         
-        /* Time display (left side)
-        const currentTime = Math.floor(timeProgress);
-        const totalTime = Math.floor(actualDuration);
-        const timeText = `${Math.floor(currentTime/60)}:${(currentTime%60).toString().padStart(2,'0')}/${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
-        
-        ctx.fillStyle = 'white';
-        ctx.font = '18px monospace'; // text-lg font-mono
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(timeText, 24, bottomY); */
-        
-        // Voice label (right side)
+        // Voice label with mic icon (right side) - using actual mic.svg
         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.font = '14px Arial'; // text-sm
+        ctx.font = '500 14px Inter, system-ui, -apple-system, sans-serif';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
-        ctx.fillText('Voice', canvas.width - 24, bottomY);
+        
+        // Draw "Voice" text first to measure it
+        const voiceText = 'Voice';
+        const textWidth = ctx.measureText(voiceText).width;
+        ctx.fillText(voiceText, canvas.width - 24, bottomY);
+        
+        // Draw the actual mic.svg (scaled down to small icon size)
+        if (micImage && micImage.complete) {
+          const micSize = 16; // Small size for the icon
+          const micX = canvas.width - 24 - textWidth - micSize - 4; // Position with small gap
+          const micY = bottomY - micSize;
+          
+          ctx.drawImage(micImage, micX, micY, micSize, micSize);
+        }
       };
       
       // Draw initial frame
@@ -278,7 +305,6 @@ export async function generateSimpleVoiceVideo({
       
       // Animation during recording - toggle play/pause state
       let animationStartTime = Date.now();
-      // let isPlaying = true; // Remove unused variable
 
       const animateCard = () => {
         const elapsed = (Date.now() - animationStartTime) / 1000;
@@ -334,8 +360,8 @@ export async function generateVoiceCardPreview({
       profileImage = new Image();
       profileImage.crossOrigin = 'anonymous';
       await new Promise((resolve, reject) => {
-        profileImage!.onload = resolve;
-        profileImage!.onerror = reject;
+        profileImage!.onload = () => resolve(null);
+        profileImage!.onerror = () => reject(null);
         profileImage!.src = userProfile.avatar!;
       });
     } catch (error) {
@@ -393,64 +419,39 @@ export async function generateVoiceCardPreview({
     ctx.beginPath();
     ctx.arc(centerX, centerY, 40, 0, Math.PI * 2);
     ctx.stroke();
-  } else {
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.fillStyle = 'white';
-
-    // Draw mic capsule
-    ctx.fillRect(-6, -12, 12, 16);
-    ctx.beginPath();
-    ctx.roundRect(-6, -12, 12, 16, 4);
-    ctx.fill();
-
-    // Draw mic stand/arc
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(0, 0, 18, 0.2 * Math.PI, 0.8 * Math.PI);
-    ctx.stroke();
-
-    // Draw mic base
-    ctx.fillRect(-6, 15, 12, 3);
-
-    ctx.restore();
-  }
+  }  else {
+  // Draw SVG-style microphone instead of emoji
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.fillStyle = 'white';
+  
+  // Draw mic capsule
+  ctx.fillRect(-6, -12, 12, 16);
+  ctx.beginPath();
+  ctx.roundRect(-6, -12, 12, 16, 4);
+  ctx.fill();
+  
+  // Draw mic stand/arc
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, 18, 0.2 * Math.PI, 0.8 * Math.PI);
+  ctx.stroke();
+  
+  // Draw mic base
+  ctx.fillRect(-6, 15, 12, 3);
+  
+  ctx.restore();
+}
+  
 
   // Voice label (right side)
-  // Voice label with mic icon (right side) - close together with Inter font
-const bottomY = canvas.height - 40;
-ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-ctx.font = '500 14px Inter, system-ui, -apple-system, sans-serif'; // Medium weight Inter font
-ctx.textAlign = 'right';
-ctx.textBaseline = 'bottom';
-
-// Draw "Voice" text first to measure it
-const voiceText = 'Voice';
-const textWidth = ctx.measureText(voiceText).width;
-ctx.fillText(voiceText, canvas.width - 24, bottomY);
-
-// Draw SVG-style mic icon close to the left of "Voice" text
-const micX = canvas.width - 24 - textWidth - 4; // Small gap
-const micY = bottomY - 10;
-
-ctx.save();
-ctx.translate(micX, micY);
-ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-
-// SVG mic shape (scaled down for small size)
-// Mic capsule
-ctx.fillRect(-2, -4, 4, 6);
-// Mic stand arc
-ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-ctx.lineWidth = 1;
-ctx.beginPath();
-ctx.arc(0, 0, 5, 0.3 * Math.PI, 0.7 * Math.PI);
-ctx.stroke();
-// Mic base
-ctx.fillRect(-2, 4, 4, 1);
-
-ctx.restore();
+  const bottomY = canvas.height - 40;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.font = '14px Arial';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('Voice', canvas.width - 24, bottomY);
 
   // Return PNG blob
   return await new Promise<Blob>((resolve) => {
