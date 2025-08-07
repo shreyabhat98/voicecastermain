@@ -237,7 +237,7 @@ export async function generateSimpleVoiceVideo({
         const bottomY = canvas.height - 40;
         
         // Voice label with mic icon (right side) - using actual mic.svg
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 1.0)';
         ctx.font = '500 14px Inter, system-ui, -apple-system, sans-serif';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
@@ -250,7 +250,7 @@ export async function generateSimpleVoiceVideo({
         // Draw the actual mic-white.svg (scaled down to small icon size)
         if (micImage && micImage.complete) {
           const micSize = 20; // Slightly bigger size for better visibility
-          const micX = canvas.width - 24 - textWidth - micSize - 4; // Position with small gap
+          const micX = canvas.width - 24 - textWidth - micSize - 3; // Position with small gap
           const micY = bottomY - micSize + 2; // Adjust vertical alignment
           
           ctx.drawImage(micImage, micX, micY, micSize, micSize);
@@ -456,7 +456,7 @@ export async function generateVoiceCardPreview({
 
   // Voice label with mic icon (right side)
   const bottomY = canvas.height - 40;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 1.0)';
   ctx.font = '500 14px Inter, system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'bottom';
@@ -468,7 +468,7 @@ export async function generateVoiceCardPreview({
   // Add mic icon
   if (micImage && micImage.complete) {
     const micSize = 20;
-    const micX = canvas.width - 24 - textWidth - micSize - 4;
+    const micX = canvas.width - 24 - textWidth - micSize - 3;
     const micY = bottomY - micSize + 2;
     ctx.drawImage(micImage, micX, micY, micSize, micSize);
   }
