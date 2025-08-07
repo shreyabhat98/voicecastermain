@@ -69,6 +69,7 @@ export default function handler(req, res) {
     <title>${pageTitle} via VoiceCaster</title>
     
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
         margin: 0;
@@ -227,11 +228,12 @@ export default function handler(req, res) {
         position: absolute;
         right: 24px;
         bottom: 6px;
-        font-size: 0.9rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
         opacity: 0.8;
         z-index: 2;
       }
-      
       .cta-button {
         display: inline-block;
         background: white;

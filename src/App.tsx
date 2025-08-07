@@ -97,7 +97,7 @@ const VoiceMessageCard = ({
                 viewBox="0 0 24 24" 
                 fill="none" 
                 xmlns="http://www.w3.org/2000/svg"
-                className="text-purple-500"
+                className="text-white"
               >
                 <path
                   d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
@@ -415,7 +415,7 @@ function App() {
       console.log('📱 Web Share API - IMMEDIATE call with preserved gesture');
       
       await navigator.share({
-        title: '🎤 Voice Message',
+        title: 'Voice Message',
         text: 'Voice message created with VoiceCaster',
         files: [file]
       });

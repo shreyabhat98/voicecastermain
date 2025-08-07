@@ -397,20 +397,60 @@ export async function generateVoiceCardPreview({
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.fillStyle = 'white';
-    ctx.font = '48px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🎤', 0, 0);
+
+    // Draw mic capsule
+    ctx.fillRect(-6, -12, 12, 16);
+    ctx.beginPath();
+    ctx.roundRect(-6, -12, 12, 16, 4);
+    ctx.fill();
+
+    // Draw mic stand/arc
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, 18, 0.2 * Math.PI, 0.8 * Math.PI);
+    ctx.stroke();
+
+    // Draw mic base
+    ctx.fillRect(-6, 15, 12, 3);
+
     ctx.restore();
   }
 
   // Voice label (right side)
-  const bottomY = canvas.height - 40;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-  ctx.font = '14px Arial';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'bottom';
-  ctx.fillText('Voice', canvas.width - 24, bottomY);
+  // Voice label with mic icon (right side) - close together with Inter font
+const bottomY = canvas.height - 40;
+ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+ctx.font = '500 14px Inter, system-ui, -apple-system, sans-serif'; // Medium weight Inter font
+ctx.textAlign = 'right';
+ctx.textBaseline = 'bottom';
+
+// Draw "Voice" text first to measure it
+const voiceText = 'Voice';
+const textWidth = ctx.measureText(voiceText).width;
+ctx.fillText(voiceText, canvas.width - 24, bottomY);
+
+// Draw SVG-style mic icon close to the left of "Voice" text
+const micX = canvas.width - 24 - textWidth - 4; // Small gap
+const micY = bottomY - 10;
+
+ctx.save();
+ctx.translate(micX, micY);
+ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+
+// SVG mic shape (scaled down for small size)
+// Mic capsule
+ctx.fillRect(-2, -4, 4, 6);
+// Mic stand arc
+ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+ctx.lineWidth = 1;
+ctx.beginPath();
+ctx.arc(0, 0, 5, 0.3 * Math.PI, 0.7 * Math.PI);
+ctx.stroke();
+// Mic base
+ctx.fillRect(-2, 4, 4, 1);
+
+ctx.restore();
 
   // Return PNG blob
   return await new Promise<Blob>((resolve) => {

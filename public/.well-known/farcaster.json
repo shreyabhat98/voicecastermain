@@ -1,1 +1,12 @@
-{}
+{
+  "version": "1",
+  "name": "VoiceCaster",
+  "description": "Record and share voice messages on Farcaster",
+  "icon": "mic",
+  "homeUrl": "https://www.voicecaster.xyz/",
+  "imageUrl": "https://www.voicecaster.xyz/mic.svg",
+  "splashImageUrl": "https://www.voicecaster.xyz/mic.svg",
+  "splashBackgroundColor": "#8B5CF6",
+  "buttonTitle": "Start Recording",
+  "manifestVersion": "0.2.0"
+}
