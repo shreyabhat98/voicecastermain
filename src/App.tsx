@@ -147,15 +147,13 @@ const VoiceMessageCard = ({
               {totalDuration && totalDuration > 0 ? `/${formatTime(totalDuration)}` : ''}
             </span>
           </div>
-          <div className="flex items-center space-x-2 text-white/80">
-           {/*} <Mic className="w-4 h-4" />*/}
-              <img 
-            src="/mic-white.svg" 
-            alt="Microphone" 
-            width="18" 
-            height="18"
-          />
-            <span className="text-sm font-medium">Voice</span>
+          <div className="flex items-center text-white/80">
+            <img 
+              src="/mic-white.svg" 
+              alt="Microphone" 
+              width="18" 
+              height="18"
+            />
           </div>
         </div>
       </div>

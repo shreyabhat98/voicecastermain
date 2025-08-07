@@ -212,12 +212,12 @@ export default function handler(req, res) {
   </head>
   <body>
       <div class="voice-card">
-          <div class="speaker-icon">🔊</div> 
+          <div class="speaker-icon"></div> 
           <div class="header-text">Voice Message</div>
           
           <div class="audio-player">
               <div class="profile-circle" onclick="toggleAudio()">
-                  🎤
+                  
                   <div class="play-overlay">
                       <div class="play-button"></div>
                   </div>
@@ -231,7 +231,7 @@ export default function handler(req, res) {
               </audio>
               
               <div class="audio-info">
-                  <span>🔊</span>
+                  <span></span>
                   <span>Voice</span>
               </div>
           </div>

@@ -345,7 +345,6 @@ export default function handler(req, res) {
                         <path d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z" fill="currentColor"/>
                         <path d="M12 19V22H8V24H16V22H12V19Z" fill="currentColor"/>
                       </svg>
-                      <span>Voice</span>
                     </div>
                 </div>
             </div>
