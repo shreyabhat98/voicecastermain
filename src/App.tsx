@@ -1,6 +1,6 @@
 import { sdk } from "@farcaster/frame-sdk";
 import { useState, useRef, useEffect } from 'react';
-import { Mic, Square, Volume2, RotateCcw, Link, Download, Copy, ExternalLink } from 'lucide-react';
+import { Square, Volume2, RotateCcw, Link, Download, Copy, ExternalLink } from 'lucide-react';
 import { generateSimpleVoiceVideo, generateVoiceCardPreview } from './utils/testVideoGenerator';
 import { generateShareableLink } from './utils/linkGenerator';
 
@@ -91,13 +91,28 @@ const VoiceMessageCard = ({
                 onError={() => setImgError(true)}
               />
             ) : (
-              <img 
-  src="/mic-white.svg" 
-  alt="Microphone" 
-  width="64" 
-  height="64"
-  className="text-white"
-/>
+              <svg 
+                width="64" 
+                height="64" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-white"
+              >
+                <path
+                  d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M12 19V22H8V24H16V22H12V19Z"
+                  fill="currentColor"
+                />
+              </svg>
+
               
             )}
           </div>
@@ -133,7 +148,13 @@ const VoiceMessageCard = ({
             </span>
           </div>
           <div className="flex items-center space-x-2 text-white/80">
-            <Mic className="w-4 h-4" />
+            {/*<Mic className="w-4 h-4" /> */}
+            <img 
+            src="/mic.svg" 
+            alt="Microphone" 
+            width="16" 
+            height="16"
+          />
             <span className="text-sm font-medium">Voice</span>
           </div>
         </div>
@@ -526,7 +547,17 @@ function App() {
                     ? 'bg-red-500/20 border-4 border-red-400 animate-pulse' 
                     : 'bg-white/10 border-4 border-white/30 hover:border-white/50'
                 }`}>
-                  <Mic className={`w-12 h-12 ${isRecording ? 'text-red-400' : 'text-white'}`} />
+                {/*  <Mic className={`w-12 h-12 ${isRecording ? 'text-red-400' : 'text-white'}`} /> */}
+                  <img 
+                    src="/mic.svg" 
+                    alt="Microphone" 
+                    width="48" 
+                    height="48"
+                    className={`transition-colors duration-300 ${isRecording ? 'opacity-90' : 'opacity-100'}`}
+                    style={{
+                      filter: isRecording ? 'hue-rotate(280deg) saturate(1.5)' : 'none'
+                    }}
+                  />
                 </div>
                 
                 {isRecording && (
@@ -561,7 +592,7 @@ function App() {
                     </>
                   ) : (
                     <>
-                      <Mic className="w-5 h-5 mr-2" />
+                       {/*<Mic className="w-5 h-5 mr-2" />*/}
                       Start Recording
                     </>
                   )}
