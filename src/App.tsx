@@ -152,8 +152,8 @@ const VoiceMessageCard = ({
               <img 
             src="/mic-white.svg" 
             alt="Microphone" 
-            width="20" 
-            height="20"
+            width="18" 
+            height="18"
           />
             <span className="text-sm font-medium">Voice</span>
           </div>
@@ -228,7 +228,7 @@ function App() {
   // Start recording
   const startRecording = async () => {
     try {
-      console.log('🎤 Starting recording...');
+      console.log('Starting recording...');
       
       const constraints = {
         audio: {
@@ -402,7 +402,7 @@ function App() {
   // Web Share API function - INSTANT (no async delays)
   const saveToPhotos = async () => {
     if (!generatedVideoBlob) {
-      alert('❌ No video ready. Please generate video first.');
+      alert(' No video ready. Please generate video first.');
       return;
     }
 
@@ -410,17 +410,17 @@ function App() {
     const filename = `voice-message-${timestamp}.mp4`;
     const sizeMB = generatedVideoBlob.size / 1024 / 1024;
     
-    console.log('📱 INSTANT Web Share API call - blob size:', generatedVideoBlob.size);
+    console.log(' INSTANT Web Share API call - blob size:', generatedVideoBlob.size);
     
     if (!navigator.share) {
-      alert('❌ Web Share not supported in this browser.\n\nPlease use Safari or Chrome for direct saving to Photos.');
+      alert('Web Share not supported in this browser.\n\nPlease use Safari or Chrome for direct saving to Photos.');
       return;
     }
 
     try {
       const file = new File([generatedVideoBlob], filename, { type: 'video/mp4' });
       
-      console.log('📱 Web Share API - IMMEDIATE call with preserved gesture');
+      console.log('Web Share API - IMMEDIATE call with preserved gesture');
       
       await navigator.share({
         title: 'Voice Message',
@@ -428,10 +428,10 @@ function App() {
         files: [file]
       });
       
-      console.log('✅ Web Share API SUCCESS!');
+      console.log('Web Share API SUCCESS!');
       
     } catch (error) {
-      console.error('❌ Web Share API failed:', error);
+      console.error('Web Share API failed:', error);
 
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('User cancelled share');
@@ -439,7 +439,7 @@ function App() {
       }
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`❌ Share failed: ${errorMessage}\n\n💡 Try:\n• Make sure you have storage space\n• Try in Safari/Chrome\n• Check file size: ${sizeMB.toFixed(1)}MB`);
+      alert(`Share failed: ${errorMessage}\n\n💡 Try:\n• Make sure you have storage space\n• Try in Safari/Chrome\n• Check file size: ${sizeMB.toFixed(1)}MB`);
     }
   };
 
@@ -462,11 +462,11 @@ function App() {
     try {
       if (option === 'link') {
         // Generate preview image
-        console.log('🖼️ Generating preview image...');
+        console.log('Generating preview image...');
         const previewImageBlob = await generateVoiceCardPreview({
           userProfile: userProfile || undefined
         });
-        console.log('✅ Preview image generated, size:', previewImageBlob.size);
+        console.log('Preview image generated, size:', previewImageBlob.size);
         
         // Generate shareable link with preview
         //const shareUrl = await generateShareableLink(audioBlob, previewImageBlob);
@@ -480,7 +480,7 @@ function App() {
             embeds: [shareUrl],
           });
           setFarcasterSuccess(true);
-          console.log('✅ Farcaster compose opened successfully');
+          console.log('Farcaster compose opened successfully');
         } catch (error) {
           console.error('Farcaster compose failed:', error);
           setFarcasterSuccess(false);
@@ -488,7 +488,7 @@ function App() {
         }
       } else {
         // STEP 1: Generate video and store it (preserve for instant Web Share later)
-        console.log('🎬 STEP 1: Generating video...');
+        console.log('STEP 1: Generating video...');
         console.log('Audio blob size:', audioBlob.size, 'Duration:', duration > 0 ? duration : recordedDuration);
         
         try {
@@ -498,12 +498,12 @@ function App() {
             userProfile: userProfile || undefined
           });
           
-          console.log('✅ Video generated successfully, size:', videoBlob.size);
+          console.log('Video generated successfully, size:', videoBlob.size);
           
           // CRITICAL: Store the video blob for instant Web Share API
           setGeneratedVideoBlob(videoBlob);
           
-          console.log('🎯 Video ready for INSTANT Web Share API call!');
+          console.log('Video ready for INSTANT Web Share API call!');
           
         } catch (videoError) {
           console.error('Video generation failed:', videoError);
