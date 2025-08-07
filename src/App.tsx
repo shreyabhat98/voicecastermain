@@ -1,6 +1,6 @@
 import { sdk } from "@farcaster/frame-sdk";
 import { useState, useRef, useEffect } from 'react';
-import { Square, Volume2, RotateCcw, Link, Download, Copy, ExternalLink } from 'lucide-react';
+import { Mic, Square, Volume2, RotateCcw, Link, Download, Copy, ExternalLink } from 'lucide-react';
 import { generateSimpleVoiceVideo, generateVoiceCardPreview } from './utils/testVideoGenerator';
 import { generateShareableLink } from './utils/linkGenerator';
 
@@ -148,12 +148,12 @@ const VoiceMessageCard = ({
             </span>
           </div>
           <div className="flex items-center space-x-2 text-white/80">
-            {/*<Mic className="w-4 h-4" /> */}
-            <img 
-            src="/mic.svg" 
+           {/*} <Mic className="w-4 h-4" />*/}
+              <img 
+            src="/mic-white.svg" 
             alt="Microphone" 
-            width="16" 
-            height="16"
+            width="20" 
+            height="20"
           />
             <span className="text-sm font-medium">Voice</span>
           </div>
@@ -533,7 +533,7 @@ function App() {
       <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white drop-shadow-lg mb-2">Voice Caster</h1>
+          <h1 className="text-3xl font-bold text-white drop-shadow-lg mb-2">VoiceCaster</h1>
           <p className="text-white/90 text-sm font-medium drop-shadow">Record and share on Farcaster</p>
         </div>
 
@@ -547,17 +547,8 @@ function App() {
                     ? 'bg-red-500/20 border-4 border-red-400 animate-pulse' 
                     : 'bg-white/10 border-4 border-white/30 hover:border-white/50'
                 }`}>
-                {/*  <Mic className={`w-12 h-12 ${isRecording ? 'text-red-400' : 'text-white'}`} /> */}
-                  <img 
-                    src="/mic.svg" 
-                    alt="Microphone" 
-                    width="48" 
-                    height="48"
-                    className={`transition-colors duration-300 ${isRecording ? 'opacity-90' : 'opacity-100'}`}
-                    style={{
-                      filter: isRecording ? 'hue-rotate(280deg) saturate(1.5)' : 'none'
-                    }}
-                  />
+                  <Mic className={`w-12 h-12 ${isRecording ? 'text-red-400' : 'text-white'}`} />
+                  
                 </div>
                 
                 {isRecording && (
@@ -592,7 +583,7 @@ function App() {
                     </>
                   ) : (
                     <>
-                       {/*<Mic className="w-5 h-5 mr-2" />*/}
+                      <Mic className="w-5 h-5 mr-2" />
                       Start Recording
                     </>
                   )}
