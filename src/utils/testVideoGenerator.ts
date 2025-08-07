@@ -93,13 +93,13 @@ export async function generateSimpleVoiceVideo({
     try {
       console.log('🎬 Creating video with VoiceMessageCard UI...');
       
-      // Load the mic.svg as an image FIRST
+      // Load the mic-white.svg as an image FIRST
       const micImage = new Image();
-      micImage.src = '/mic.svg';
+      micImage.src = '/mic-white.svg';
       await new Promise((resolveImage) => {
         micImage.onload = () => resolveImage(null);
         micImage.onerror = () => {
-          console.warn('Failed to load mic.svg, will use fallback');
+          console.warn('Failed to load mic-white.svg, will use fallback');
           resolveImage(null);
         };
       });
@@ -247,11 +247,11 @@ export async function generateSimpleVoiceVideo({
         const textWidth = ctx.measureText(voiceText).width;
         ctx.fillText(voiceText, canvas.width - 24, bottomY);
         
-        // Draw the actual mic.svg (scaled down to small icon size)
+        // Draw the actual mic-white.svg (scaled down to small icon size)
         if (micImage && micImage.complete) {
-          const micSize = 16; // Small size for the icon
+          const micSize = 20; // Slightly bigger size for better visibility
           const micX = canvas.width - 24 - textWidth - micSize - 4; // Position with small gap
-          const micY = bottomY - micSize;
+          const micY = bottomY - micSize + 2; // Adjust vertical alignment
           
           ctx.drawImage(micImage, micX, micY, micSize, micSize);
         }
@@ -338,7 +338,6 @@ export async function generateSimpleVoiceVideo({
   });
 }
 
-// Generate a PNG preview of the Voice Card UI (for OG image)
 export async function generateVoiceCardPreview({
   userProfile
 }: {
@@ -352,6 +351,17 @@ export async function generateVoiceCardPreview({
   const ctx = canvas.getContext('2d')!;
   canvas.width = 400;
   canvas.height = 280;
+
+  // Load the mic-white.svg as an image FIRST
+  const micImage = new Image();
+  micImage.src = '/mic-white.svg';
+  await new Promise((resolve) => {
+    micImage.onload = () => resolve(null);
+    micImage.onerror = () => {
+      console.warn('Failed to load mic-white.svg in preview');
+      resolve(null);
+    };
+  });
 
   // Load profile image if available
   let profileImage: HTMLImageElement | null = null;
@@ -419,39 +429,49 @@ export async function generateVoiceCardPreview({
     ctx.beginPath();
     ctx.arc(centerX, centerY, 40, 0, Math.PI * 2);
     ctx.stroke();
-  }  else {
-  // Draw SVG-style microphone instead of emoji
-  ctx.save();
-  ctx.translate(centerX, centerY);
-  ctx.fillStyle = 'white';
-  
-  // Draw mic capsule
-  ctx.fillRect(-6, -12, 12, 16);
-  ctx.beginPath();
-  ctx.roundRect(-6, -12, 12, 16, 4);
-  ctx.fill();
-  
-  // Draw mic stand/arc
-  ctx.strokeStyle = 'white';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(0, 0, 18, 0.2 * Math.PI, 0.8 * Math.PI);
-  ctx.stroke();
-  
-  // Draw mic base
-  ctx.fillRect(-6, 15, 12, 3);
-  
-  ctx.restore();
-}
-  
+  } else {
+    // Draw SVG-style microphone instead of emoji
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.fillStyle = 'white';
+    
+    // Draw mic capsule
+    ctx.fillRect(-6, -12, 12, 16);
+    ctx.beginPath();
+    ctx.roundRect(-6, -12, 12, 16, 4);
+    ctx.fill();
+    
+    // Draw mic stand/arc
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, 18, 0.2 * Math.PI, 0.8 * Math.PI);
+    ctx.stroke();
+    
+    // Draw mic base
+    ctx.fillRect(-6, 15, 12, 3);
+    
+    ctx.restore();
+  }
 
-  // Voice label (right side)
+  // Voice label with mic icon (right side)
   const bottomY = canvas.height - 40;
   ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-  ctx.font = '14px Arial';
+  ctx.font = '500 14px Inter, system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'bottom';
-  ctx.fillText('Voice', canvas.width - 24, bottomY);
+
+  const voiceText = 'Voice';
+  const textWidth = ctx.measureText(voiceText).width;
+  ctx.fillText(voiceText, canvas.width - 24, bottomY);
+
+  // Add mic icon
+  if (micImage && micImage.complete) {
+    const micSize = 20;
+    const micX = canvas.width - 24 - textWidth - micSize - 4;
+    const micY = bottomY - micSize + 2;
+    ctx.drawImage(micImage, micX, micY, micSize, micSize);
+  }
 
   // Return PNG blob
   return await new Promise<Blob>((resolve) => {

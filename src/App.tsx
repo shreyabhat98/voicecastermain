@@ -91,27 +91,14 @@ const VoiceMessageCard = ({
                 onError={() => setImgError(true)}
               />
             ) : (
-              <svg 
-                width="64" 
-                height="64" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-white"
-              >
-                <path
-                  d="M12 2C10.9 2 10 2.9 10 4V12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12V4C14 2.9 13.1 2 12 2Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M19 10V12C19 15.9 15.9 19 12 19C8.1 19 5 15.9 5 12V10H7V12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12V10H19Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M12 19V22H8V24H16V22H12V19Z"
-                  fill="currentColor"
-                />
-              </svg>
+              <img 
+  src="/mic-white.svg" 
+  alt="Microphone" 
+  width="64" 
+  height="64"
+  className="text-white"
+/>
+              
             )}
           </div>
           {/* Play/Pause button overlay - custom style */}
