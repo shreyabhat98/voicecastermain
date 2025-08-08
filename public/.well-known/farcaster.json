@@ -1,12 +1,20 @@
 {
-  "version": "1",
-  "name": "VoiceCaster",
-  "description": "Record and share voice messages on Farcaster",
-  "icon": "mic",
-  "homeUrl": "https://www.voicecaster.xyz/",
-  "imageUrl": "https://www.voicecaster.xyz/mic.svg",
-  "splashImageUrl": "https://www.voicecaster.xyz/mic.svg",
-  "splashBackgroundColor": "#8B5CF6",
-  "buttonTitle": "Start Recording",
-  "manifestVersion": "0.2.0"
+  "frame": {
+    "name": "VoiceCaster",
+    "version": "1",
+    "iconUrl": "https://voicecaster.xyz/mic-white.png",
+    "homeUrl": "https://voicecaster.xyz",
+    "imageUrl": "https://voicecaster.xyz/mic-white.png",
+    "buttonTitle": "Open VoiceCaster",
+    "splashImageUrl": "https://voicecaster.xyz/mic-white.png",
+    "splashBackgroundColor": "#8B5CF6",
+    "webhookUrl": "https://voicecaster.xyz/api/webhook",
+    "subtitle": "Record and share voice messages",
+    "primaryCategory": "social",
+    "description": "Because Not Everything Fits in Text, this mini app lets people to yap, sing, rant, hum, or just whisper — and post it straight to Farcaster",
+    "heroImageUrl": "https://voicecaster.xyz/mic-white.png",
+    "ogTitle": "VoiceCaster",
+    "ogDescription": "Record and share voice messages",
+    "ogImageUrl": "https://voicecaster.xyz/mic-white.png"
+  }
 }
