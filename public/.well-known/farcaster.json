@@ -13,8 +13,8 @@
     "primaryCategory": "entertainment"
   },
   "accountAssociation": {
-    "header": "",
-    "payload": "",
-    "signature": ""
+    "header": "eyJmaWQiOjEwOTk3NDYsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg2MzBkOGQ4NzFiODAzQkJBMjcyOUU5ZTlEQjgzNkU4NjAzNzA2NWRiIn0",
+    "payload": "eyJkb21haW4iOiJ2b2ljZWNhc3Rlci54eXoifQ",
+    "signature": "MHg2MjUwZTEzNWM2ZGIwZjExNGUxNWZlN2NhYWJjMmFiZDIzYjcxZjc1MmQyMDAzMzY4YTYzNmQwNGYzZTU0MjkxNGNhZDc2NDE1NGNkMDJiYzg4NmI0NmJjNjU5NjM3YTRhOGQ1ZGE1MDE4OWQ3YTViNTM0NjMxN2I5YjA5M2YzMzFi"
   }
 }
