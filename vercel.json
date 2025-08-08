@@ -9,15 +9,6 @@
       "source": "/api/video/(.*)",
       "destination": "/api/video/[videoId]"
     }
-  ],
-  
-
-  "redirects": [
-    {
-      "source": "/.well-known/farcaster.json",
-      "destination": "https://api.farcaster.xyz/miniapps/hosted-manifest/01988812-fd2e-50bf-b22b-494dcc997a88",
-      "permanent": false
-    }
   ]
-
+  
 }
