@@ -5,16 +5,16 @@
     "iconUrl": "https://voicecaster.xyz/mic-white.png",
     "homeUrl": "https://voicecaster.xyz",
     "imageUrl": "https://voicecaster.xyz/mic-white.png",
-    "buttonTitle": "Open VoiceCaster",
-    "splashImageUrl": "https://voicecaster.xyz/mic-white.png",
+    "splashImageUrl": "https://voicecaster.xyz/mic-white.svg",
     "splashBackgroundColor": "#8B5CF6",
     "webhookUrl": "https://voicecaster.xyz/api/webhook",
-    "subtitle": "Record and share voice messages",
-    "primaryCategory": "social",
-    "description": "Because Not Everything Fits in Text, this mini app lets people to yap, sing, rant, hum, or just whisper — and post it straight to Farcaster",
-    "heroImageUrl": "https://voicecaster.xyz/mic-white.png",
-    "ogTitle": "VoiceCaster",
-    "ogDescription": "Record and share voice messages",
-    "ogImageUrl": "https://voicecaster.xyz/mic-white.png"
+    "subtitle": "Record and share voice",
+    "description": "Because Not Everything Fits in Text, I built this mini app so people can yap, sing, rant, hum, or just whisper — and post it straight to Farcaster.",
+    "primaryCategory": "entertainment"
+  },
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
   }
 }
