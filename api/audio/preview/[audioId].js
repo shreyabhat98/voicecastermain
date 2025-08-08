@@ -61,7 +61,7 @@ export default function handler(req, res) {
     <meta property="fc:frame:image:aspect_ratio" content="1:1" />
     <meta property="fc:frame:button:1" content="Play Audio" />
     <meta property="fc:frame:button:1:action" content="launch_frame" />
-    <meta property="fc:frame:button:1:target" content="https://${req.headers.host}" />
+    <meta property="fc:frame:button:1:target" content="https://${req.headers.host}/?audio=${encodeURIComponent(audio)}&autoplay=true" />
     <meta property="fc:frame:button:2" content="Create Voice Message" />
     <meta property="fc:frame:button:2:action" content="link" />
     <meta property="fc:frame:button:2:target" content="https://${req.headers.host}" />
