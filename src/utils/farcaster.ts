@@ -10,7 +10,7 @@ export interface FarcasterFrameData {
 
 export const generateFarcasterFrame = (data: FarcasterFrameData) => {
   const { videoUrl, duration, message } = data;
-  
+
   // This generates the HTML meta tags for Farcaster frame
   const frameHtml = `
 <!DOCTYPE html>
@@ -56,7 +56,9 @@ export const generateFarcasterFrame = (data: FarcasterFrameData) => {
         <source src="${videoUrl}" type="video/webm">
         Your browser does not support the video tag.
       </video>
-      <p style="margin-top: 20px; opacity: 0.8;">Duration: ${Math.floor(duration / 60)}:${Math.floor(duration % 60).toString().padStart(2, '0')}</p>
+      <p style="margin-top: 20px; opacity: 0.8;">Duration: ${Math.floor(duration / 60)}:${Math.floor(duration % 60)
+        .toString()
+        .padStart(2, "0")}</p>
     </div>
   </div>
 </body>
@@ -68,16 +70,16 @@ export const generateFarcasterFrame = (data: FarcasterFrameData) => {
 export const postToFarcasterAPI = async (frameData: FarcasterFrameData) => {
   // This is where you'd integrate with Farcaster's API
   // For now, we'll create a shareable link
-  
+
   const frameHtml = generateFarcasterFrame(frameData);
-  
+
   // You could upload this HTML to a hosting service
   // or create an endpoint that serves this HTML
-  
-  console.log('Generated Farcaster Frame HTML:', frameHtml);
-  
+
+  console.log("Generated Farcaster Frame HTML:", frameHtml);
+
   return {
     frameHtml,
-    shareUrl: `https://your-domain.com/frame/${Date.now()}` // This would be your actual frame URL
+    shareUrl: `https://your-domain.com/frame/${Date.now()}`, // This would be your actual frame URL
   };
 };
