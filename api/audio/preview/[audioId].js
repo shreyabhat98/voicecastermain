@@ -61,6 +61,33 @@ export default function handler(req, res) {
 
 <!-- For backward compatibility -->
 <meta name="fc:frame" content='{"version":"1","imageUrl":"${previewImageUrl}","button":{"title":"Play Audio","action":{"type":"launch_frame","name":"VoiceCaster","url":"${wrapperUrl}","splashImageUrl": "https://voicecaster.xyz/mic-white.svg","splashBackgroundColor": "#8B5CF6"}}}' />
+
+<title>${pageTitle} via VoiceCaster</title>
+
+<script src="https://unpkg.com/@farcaster/frame-sdk@0.13.8/dist/sdk.js"></script>
+<script>
+  console.log('Mini-app script started');
+  
+  function tryReady() {
+    try {
+      if (window.frames && window.frames.sdk) {
+        window.frames.sdk.actions.ready();
+        console.log('Mini-app ready!');
+      } else {
+        setTimeout(tryReady, 200);
+      }
+    } catch (error) {
+      console.error(' Ready failed:', error);
+      setTimeout(tryReady, 200);
+    }
+  }
+  
+  // Start trying when page loads
+  window.addEventListener('load', tryReady);
+  setTimeout(tryReady, 500);
+</script>
+
+<style>
     
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
