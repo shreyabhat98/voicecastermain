@@ -224,8 +224,15 @@ function App() {
   }, []); */
 useEffect(() => {
   const initializeApp = async () => {
-    try {
-      await sdk.actions.ready();
+
+   
+  try {
+    await sdk.actions.ready();
+    
+    // DEBUG: Check what URL we're getting
+    console.log('🔍 Full URL:', window.location.href);
+    console.log('🔍 Search params:', window.location.search);
+    
       
       // Check for audio URL parameters
       const urlParams = new URLSearchParams(window.location.search);
