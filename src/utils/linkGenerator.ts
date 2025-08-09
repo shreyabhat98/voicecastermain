@@ -113,7 +113,7 @@ export const generateShareableLink = async (
     // Try to shorten the wrapper URL for better sharing
     let finalUrl = wrapperUrl;
     
-    try {
+   /* try {
       finalUrl = await shortenUrl(wrapperUrl);
     } catch (error) {
       console.log('TinyURL failed, trying is.gd...');
@@ -124,7 +124,7 @@ export const generateShareableLink = async (
         console.log('Both shorteners failed, using original URL');
         finalUrl = wrapperUrl;
       }
-    }
+    }*/
     
     console.log('🎯 Final shareable URL:', finalUrl);
     
