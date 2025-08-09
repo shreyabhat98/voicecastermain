@@ -19,7 +19,7 @@ export default function handler(req, res) {
   }
   
   // Build wrapper URL with ALL parameters
-  const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}${username ? `&username=${encodeURIComponent(username)}` : ''}${name ? `&name=${encodeURIComponent(name)}` : ''}`;
+  const wrapperUrl = `https://${req.headers.host}/?audioUrl=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}${username ? `&username=${encodeURIComponent(username)}` : ''}${name ? `&name=${encodeURIComponent(name)}` : ''}`;
   //const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}`;
   // Use preview image if available, otherwise fallback to placeholder
   const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=Voice+Message';
