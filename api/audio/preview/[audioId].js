@@ -63,6 +63,11 @@ export default function handler(req, res) {
 <meta name="fc:frame" content='{"version":"1","imageUrl":"${previewImageUrl}","button":{"title":"Play Audio","action":{"type":"launch_frame","name":"VoiceCaster","url":"${wrapperUrl}","splashImageUrl": "https://voicecaster.xyz/mic-white.svg","splashBackgroundColor": "#8B5CF6"}}}' />
 
 <title>${pageTitle} via VoiceCaster</title>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@farcaster/miniapps@latest/dist/index.min.js";
+  const sdk = await createClient();
+  sdk.actions.ready();
+</script>
 
 <style>
     
