@@ -584,7 +584,7 @@ useEffect(() => {
 
         {/* Recording Section */}
         <div className="mb-8">
-          {!audioBlob ? (
+          {(!audioBlob && !audioUrl)? (
             <div className="text-center">
               <div className="relative mb-6">
                 <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center transition-all duration-300 ${
