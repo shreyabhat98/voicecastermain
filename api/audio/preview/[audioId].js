@@ -57,10 +57,12 @@ export default function handler(req, res) {
     
     <!-- Farcaster Frame Meta Tags -->
     <!-- Farcaster Mini App Embed -->
-<meta name="fc:miniapp" content='{"version":"1","imageUrl":"${previewImageUrl}","button":{"title":"Play Audio","action":{"type":"launch_frame","name":"VoiceCaster","url":"${wrapperUrl}","splashImageUrl":"https://voicecaster.xyz/logo.png","splashBackgroundColor":"#8B5CF6"}}}' />
+<meta name="fc:miniapp" content='{"version":"1","imageUrl":"${previewImageUrl}","button":{"title":"Play Audio","action":{"type":"launch_frame","name":"VoiceCaster","url":""url":"https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}${username ? `&username=${encodeURIComponent(username)}` : ''}${name ? `&name=${encodeURIComponent(name)}` : ''}"","splashImageUrl": "https://voicecaster.xyz/mic-white.svg",
+    "splashBackgroundColor": "#8B5CF6"}}}' />
 
 <!-- For backward compatibility -->
-<meta name="fc:frame" content='{"version":"1","imageUrl":"${previewImageUrl}","button":{"title":"Play Audio","action":{"type":"launch_frame","name":"VoiceCaster","url":"${wrapperUrl}","splashImageUrl":"https://voicecaster.xyz/logo.png","splashBackgroundColor":"#8B5CF6"}}}' />
+<meta name="fc:frame" content='{"version":"1","imageUrl":"${previewImageUrl}","button":{"title":"Play Audio","action":{"type":"launch_frame","name":"VoiceCaster","url":""url":"https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}${username ? `&username=${encodeURIComponent(username)}` : ''}${name ? `&name=${encodeURIComponent(name)}` : ''}"","splashImageUrl": "https://voicecaster.xyz/mic-white.svg",
+    "splashBackgroundColor": "#8B5CF6"}}}' />
     
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
