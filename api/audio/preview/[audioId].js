@@ -64,20 +64,6 @@ export default function handler(req, res) {
 
 <title>${pageTitle} via VoiceCaster</title>
 
-<<script type="module">
-  import { sdk } from "@farcaster/frame-sdk";
-  
-  console.log('Importing SDK...');
-  
-  // Call ready as soon as script loads
-  try {
-    await sdk.actions.ready();
-    console.log('Mini-app ready called successfully!');
-  } catch (error) {
-    console.error('SDK ready failed:', error);
-  }
-</script>
-
 <style>
     
     <style>

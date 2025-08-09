@@ -186,7 +186,7 @@ function App() {
   const timerRef = useRef<number | null>(null);
 
   // Get user profile from Farcaster SDK
-  useEffect(() => {
+  /*useEffect(() => {
     const initializeApp = async () => {
       try {
         await sdk.actions.ready();
@@ -221,8 +221,48 @@ function App() {
     };
 
     initializeApp();
-  }, []);
+  }, []); */
+useEffect(() => {
+  const initializeApp = async () => {
+    try {
+      await sdk.actions.ready();
+      
+      // Check for audio URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const audioUrl = urlParams.get('audioUrl');
+      const audioId = urlParams.get('audioId');
+      
+      if (audioUrl) {
+        // Direct audio playback mode
+        console.log('🎵 Direct audio mode detected:', audioUrl);
+        setAudioUrl(audioUrl);
+        setAudioBlob(null); // We don't have the blob, just the URL
+        setIsLoading(false); // Skip loading screen
+        return; // Skip normal initialization
+      }
+      
+      // Normal initialization continues...
+      const context = await sdk.context;
+      if (context.user) {
+        setUserProfile({
+          name: context.user.displayName || context.user.username,
+          username: context.user.username,
+          avatar: context.user.pfpUrl
+        });
+      }
+      
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Failed to initialize app:', error);
+      // Fallback...
+    }
+  };
 
+  initializeApp();
+}, []);
   // Start recording
   const startRecording = async () => {
     try {
