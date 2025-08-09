@@ -56,13 +56,11 @@ export default function handler(req, res) {
     <meta name="twitter:image" content="${previewImageUrl}" />
     
     <!-- Farcaster Frame Meta Tags -->
-    <meta property="fc:frame" content="vNext" />
-    <meta property="fc:frame:image" content="${previewImageUrl}" />
-    <meta property="fc:frame:image:aspect_ratio" content="1:1" />
-    <meta name="fc:frame:post_url" content="https://${req.headers.host}/api/redirect" />
-    <meta name="fc:frame:button:1" content="Play Audio" />
-    <meta name="fc:frame:button:1:action" content="post_redirect" />
-    <title>${pageTitle} via VoiceCaster</title>
+    <!-- Farcaster Mini App Embed -->
+<meta name="fc:miniapp" content='{"version":"1","imageUrl":"${previewImageUrl}","button":{"title":"Play Audio","action":{"type":"launch_frame","name":"VoiceCaster","url":"${wrapperUrl}","splashImageUrl":"https://voicecaster.xyz/logo.png","splashBackgroundColor":"#8B5CF6"}}}' />
+
+<!-- For backward compatibility -->
+<meta name="fc:frame" content='{"version":"1","imageUrl":"${previewImageUrl}","button":{"title":"Play Audio","action":{"type":"launch_frame","name":"VoiceCaster","url":"${wrapperUrl}","splashImageUrl":"https://voicecaster.xyz/logo.png","splashBackgroundColor":"#8B5CF6"}}}' />
     
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
