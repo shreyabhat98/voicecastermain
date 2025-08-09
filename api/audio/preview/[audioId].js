@@ -19,8 +19,8 @@ export default function handler(req, res) {
   }
   
   // Build wrapper URL with ALL parameters
-  const wrapperUrl = `https://${req.headers.host}/api/audio/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}${username ? `&username=${encodeURIComponent(username)}` : ''}${name ? `&name=${encodeURIComponent(name)}` : ''}`;
-  
+  const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}${avatar ? `&avatar=${encodeURIComponent(avatar)}` : ''}${username ? `&username=${encodeURIComponent(username)}` : ''}${name ? `&name=${encodeURIComponent(name)}` : ''}`;
+  //const wrapperUrl = `https://${req.headers.host}/api/audio/preview/${audioId}?audio=${encodeURIComponent(audio)}${preview ? `&preview=${encodeURIComponent(preview)}` : ''}`;
   // Use preview image if available, otherwise fallback to placeholder
   const previewImageUrl = preview || 'https://via.placeholder.com/640x640/8B5CF6/FFFFFF?text=Voice+Message';
   
@@ -60,10 +60,8 @@ export default function handler(req, res) {
     <meta property="fc:frame:image" content="${previewImageUrl}" />
     <meta property="fc:frame:image:aspect_ratio" content="1:1" />
     <meta property="fc:frame:button:1" content="Play Audio" />
-    <meta property="fc:frame:button:1:action" content="link" />
-    <meta property="fc:frame:button:1:target" content="${audio}" />
-
-    
+    <meta property="fc:frame:button:1:action" content="launch_frame" />
+    <meta property="fc:frame:button:1:target" content="${wrapperUrl}" />
     <title>${pageTitle} via VoiceCaster</title>
     
     <style>

@@ -46,9 +46,6 @@ export default function handler(req, res) {
       <meta property="fc:frame:button:1" content="Play Audio" />
     <meta property="fc:frame:button:1:action" content="link" />
     <meta property="fc:frame:button:1:target" content="${audio}" />
-      <meta property="fc:frame:button:2" content="Create Voice Message" />
-      <meta property="fc:frame:button:2:action" content="link" />
-      <meta property="fc:frame:button:2:target" content="https://${req.headers.host}" />
       
       <title>Voice Message via VoiceCaster</title>
       
