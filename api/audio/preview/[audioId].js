@@ -64,27 +64,18 @@ export default function handler(req, res) {
 
 <title>${pageTitle} via VoiceCaster</title>
 
-<script src="https://unpkg.com/@farcaster/frame-sdk@0.13.8/dist/sdk.js"></script>
-<script>
-  console.log('Mini-app script started');
+<<script type="module">
+  import { sdk } from "@farcaster/frame-sdk";
   
-  function tryReady() {
-    try {
-      if (window.frames && window.frames.sdk) {
-        window.frames.sdk.actions.ready();
-        console.log('Mini-app ready!');
-      } else {
-        setTimeout(tryReady, 200);
-      }
-    } catch (error) {
-      console.error(' Ready failed:', error);
-      setTimeout(tryReady, 200);
-    }
+  console.log('Importing SDK...');
+  
+  // Call ready as soon as script loads
+  try {
+    await sdk.actions.ready();
+    console.log('Mini-app ready called successfully!');
+  } catch (error) {
+    console.error('SDK ready failed:', error);
   }
-  
-  // Start trying when page loads
-  window.addEventListener('load', tryReady);
-  setTimeout(tryReady, 500);
 </script>
 
 <style>
