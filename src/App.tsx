@@ -230,7 +230,7 @@ useEffect(() => {
       // Check for audio URL parameters
       const urlParams = new URLSearchParams(window.location.search);
       const audioUrl = urlParams.get('audioUrl');
-      const audioId = urlParams.get('audioId');
+     // const audioId = urlParams.get('audioId');
       
       if (audioUrl) {
         // Direct audio playback mode
