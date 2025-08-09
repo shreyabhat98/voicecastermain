@@ -352,16 +352,20 @@ export async function generateVoiceCardPreview({
   canvas.width = 400;
   canvas.height = 280;
 
-  // Load the mic-white.svg as an image FIRST
-  const micImage = new Image();
-  micImage.src = '/mic-white.svg';
-  await new Promise((resolve) => {
-    micImage.onload = () => resolve(null);
-    micImage.onerror = () => {
-      console.warn('Failed to load mic-white.svg in preview');
-      resolve(null);
-    };
-  });
+  // Load the mic-white.svg as an image FIRST - PROPERLY HANDLE ERRORS
+  let micImage: HTMLImageElement | null = null;
+  try {
+    micImage = new Image();
+    micImage.src = '/mic-white.svg';
+    await new Promise((resolve, reject) => {
+      micImage!.onload = () => resolve(null);
+      micImage!.onerror = () => reject(new Error('SVG failed to load'));
+    });
+    console.log('✅ SVG loaded successfully');
+  } catch (error) {
+    console.warn('❌ SVG failed to load, will use fallback drawing');
+    micImage = null;
+  }
 
   // Load profile image if available
   let profileImage: HTMLImageElement | null = null;
